@@ -8,10 +8,10 @@ const BankPanel = () => {
   const [bet, setBet] = React.useState<number>(100);
 
   const gameStart = () => {
-    console.log("bank: ", appCtx.bank);
-    appCtx.setBank((prevState) => {
-      return prevState - bet;
-    });
+    if (bet > appCtx.bank) {
+      return;
+    }
+    appCtx.setBank((prevState) => prevState - bet);
     appCtx.sendMachineState("Deal", { bet });
   };
 
@@ -30,7 +30,11 @@ const BankPanel = () => {
         </div>
       ) : (
         <div className="col d-flex">
-          <antd.Button type="primary" onClick={gameStart}>
+          <antd.Button
+            type="primary"
+            disabled={appCtx.machineState.value !== "roundStart"}
+            onClick={gameStart}
+          >
             Deal
           </antd.Button>
           <antd.InputNumber

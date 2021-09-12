@@ -1,7 +1,8 @@
 import React from "react";
 import * as antd from "antd";
 import swal from "sweetalert";
-import { AppContext } from "../AppContext";
+import { AppContext, double, roundbet } from "../AppContext";
+import { cardnumCalc } from "../utils/cardnum";
 
 interface ControlPanelProps {}
 
@@ -38,9 +39,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
         title: "Push",
         text: `Dealer: ${dealerNum},Player: ${playerNum}`,
       };
-      appCtx.setBank((prevState) => {
-        return prevState + bet;
-      });
+      appCtx.setBank((prevState) => prevState + bet);
     }
     swal(swalConfig).then(() => {
       appCtx.sendMachineState("NextRound");
@@ -63,7 +62,10 @@ const ControlPanel = ({}: ControlPanelProps) => {
   };
 
   const Double = () => {
-    // appCtx.double();
+    const { changed, context } = appCtx.sendMachineState("Double");
+    if (changed) {
+      end(context);
+    }
   };
 
   return (
@@ -74,10 +76,17 @@ const ControlPanel = ({}: ControlPanelProps) => {
         </antd.Button>
       </div>
       <div className="col d-flex justify-content-center">
-        <antd.Button type="dashed" onClick={Double}>
-          Double
-        </antd.Button>
-        {}
+        {appCtx.playerCards.length === 2 &&
+        cardnumCalc(appCtx.playerCards) === 11 ? (
+          <antd.Button type="primary" onClick={Double}>
+            Double
+          </antd.Button>
+        ) : (
+          <antd.Button type="dashed" disabled={true}>
+            Double
+          </antd.Button>
+        )}
+        {double && <span className="ml-2">{roundbet}</span>}
       </div>
       <div className="col d-flex justify-content-center">
         <antd.Button type="primary" onClick={Stand}>

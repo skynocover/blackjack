@@ -8,9 +8,6 @@ export const cardnumCalc = (cards: Card[]): number => {
     switch (c.number) {
       case "ace":
         num += 11;
-        if (num > 21) {
-          num -= 10;
-        }
         break;
       case "jack":
       case "queen":
@@ -22,5 +19,16 @@ export const cardnumCalc = (cards: Card[]): number => {
         break;
     }
   }
+  if (num > 21) {
+    for (const c of cards) {
+      if (c.number === "ace") {
+        num -= 10;
+        if (num <= 21) {
+          break;
+        }
+      }
+    }
+  }
+
   return num;
 };

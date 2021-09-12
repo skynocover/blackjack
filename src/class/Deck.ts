@@ -14,6 +14,7 @@ const cardNumber: string[] = [
   "queen",
   "king",
 ];
+
 const cardSuit: string[] = ["clubs", "diamonds", "hearts", "spades"];
 
 class Deck {

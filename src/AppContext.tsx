@@ -34,8 +34,6 @@ interface AppContextProps {
   logout: () => Promise<void>;
   redirect: () => Promise<void>;
 
-  double: () => void;
-
   bank: number;
   setBank: React.Dispatch<React.SetStateAction<number>>;
 
@@ -64,6 +62,7 @@ interface AppContextProps {
     }
   >;
   deckCardNumber: number;
+  // setDouble: (input: boolean) => void;
 }
 
 const AppContext = React.createContext<AppContextProps>(undefined!);
@@ -75,6 +74,10 @@ interface AppProviderProps {
 let shuffleDeck = false;
 export const setShuffleDeck = (input: boolean) => (shuffleDeck = input);
 
+let game = new Game();
+export let roundbet = 0;
+export let double = false;
+
 export let decks = 1;
 export const setDecks = (input: number) => (decks = input);
 
@@ -83,8 +86,6 @@ const AppProvider = ({ children }: AppProviderProps) => {
     { name: "card_back.jpg", number: "0", suit: "" },
     { name: "card_back.jpg", number: "0", suit: "" },
   ];
-  let game = new Game();
-  let roundbet = 0;
 
   const [loginPage] = React.useState("/#/login");
   const [homePage] = React.useState("/#/global");
@@ -109,6 +110,15 @@ const AppProvider = ({ children }: AppProviderProps) => {
     return { dealerCards, playerCards };
   };
 
+  // const setDouble = (input: boolean) => {
+  //   double = input;
+  //   if (input) {
+  //     setBank((prevState) => (prevState -= roundbet));
+  //     game.playerDraw();
+  //     setCard();
+  //   }
+  // };
+
   const checkShuffle = () => {
     const { deckCardNumber } = game.getCard();
     if (shuffleDeck || deckCardNumber < (decks * 52) / 2) {
@@ -121,10 +131,6 @@ const AppProvider = ({ children }: AppProviderProps) => {
     }
   };
 
-  const double = () => {
-    roundbet = roundbet * 2;
-  };
-
   const machine = createMachine(
     {
       id: "game",
@@ -133,6 +139,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
         beforeStart: {
           on: { Start: "roundStart" },
           onEntry: (state, context) => {
+            setBank(1000);
             game = new Game();
             game.shuffleDeck(decks);
             setDeckCardNumber(decks * 52);
@@ -147,6 +154,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             Deal: "deal",
           },
           onEntry: (context: any, event: any) => {
+            double = false;
             setDealerCards(initCards);
             setPlayerCards(initCards);
           },
@@ -158,6 +166,10 @@ const AppProvider = ({ children }: AppProviderProps) => {
               actions: ["restart"],
             },
             Hit: { target: "hit", actions: ["hit"] },
+            Double: {
+              target: "stand",
+              actions: ["double"],
+            },
             Stand: "stand",
           },
           onEntry: (context: any, event: any) => {
@@ -165,7 +177,13 @@ const AppProvider = ({ children }: AppProviderProps) => {
             roundbet = bet;
             checkShuffle();
             game.deal();
-            setCard();
+            const { playerCards } = setCard();
+            if (playerCards.length === 2 && cardnumCalc(playerCards) === 21) {
+              antd.notification.success({
+                message: "Black Jack!!",
+                duration: 1.5,
+              });
+            }
           },
         },
         hit: {
@@ -196,7 +214,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             const playerNum = cardnumCalc(playerCards);
             context.playerNum = playerNum;
             context.dealerNum = dealerNum;
-            context.bet = roundbet;
+            context.bet = double ? roundbet * 2 : roundbet;
           },
         },
         End: {
@@ -224,6 +242,12 @@ const AppProvider = ({ children }: AppProviderProps) => {
           setDealerCards(initCards);
           setPlayerCards(initCards);
         },
+        double: () => {
+          setBank((prevState) => (prevState -= roundbet));
+          game.playerDraw();
+          setCard();
+          double = true;
+        },
       },
     }
   );
@@ -231,7 +255,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const [machineState, sendMachineState] = useMachine(machine);
 
   React.useEffect(() => {
-    console.log(machineState.value);
+    // console.log(machineState.value);
     // console.log("state game id: ", game.getID());
   }, [machineState]);
   /////////////////////////////////////////////////////
@@ -321,7 +345,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
         login,
         logout,
         redirect,
-        double,
+
         bank,
         setBank,
 
@@ -332,6 +356,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
         machineState,
         sendMachineState,
         deckCardNumber,
+        // setDouble,
       }}
     >
       {modal && (
