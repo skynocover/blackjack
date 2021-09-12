@@ -16,11 +16,9 @@ const BankPanel = () => {
   };
 
   return (
-    <div className="row justify-content-around">
-      <div className="col">{appCtx.bank}</div>
-
+    <div className="row justify-content-center">
       {appCtx.machineState.value === "beforeStart" ? (
-        <div className="col d-flex">
+        <div className="col-6 d-flex justify-content-center">
           <antd.Button
             type="primary"
             onClick={() => appCtx.sendMachineState("Start")}
@@ -29,7 +27,7 @@ const BankPanel = () => {
           </antd.Button>
         </div>
       ) : (
-        <div className="col d-flex">
+        <div className="col-6 d-flex justify-content-center">
           <antd.Button
             type="primary"
             disabled={appCtx.machineState.value !== "roundStart"}
@@ -45,15 +43,6 @@ const BankPanel = () => {
           />
         </div>
       )}
-
-      <div className="col">
-        <antd.Button
-          type="primary"
-          onClick={() => appCtx.sendMachineState("ReStart")}
-        >
-          Restart
-        </antd.Button>
-      </div>
     </div>
   );
 };

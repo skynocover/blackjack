@@ -10,35 +10,41 @@ const ControlPanel = ({}: ControlPanelProps) => {
   const appCtx = React.useContext(AppContext);
 
   const end = (context: any) => {
-    const { playerNum, dealerNum, bet } = context;
-    let swalConfig = {};
+    const { playerNum, dealerNum, bet, blackjack } = context;
+    let swalConfig: any = {};
     if (playerNum > 21) {
       swalConfig = {
         title: "Dealer Win",
         text: `Player Bust: ${playerNum}`,
       };
-    } else if ((dealerNum || 0) > 21) {
+    } else if (dealerNum > 21) {
       swalConfig = {
         title: "Player Win",
         text: `Dealer Bust: ${dealerNum}`,
       };
-      appCtx.setBank((prevState) => prevState + bet * 2);
-    } else if ((dealerNum || 0) > playerNum) {
+    } else if (dealerNum > playerNum) {
       swalConfig = {
         title: "Dealer Win",
         text: `Dealer: ${dealerNum},Player: ${playerNum}`,
       };
-    } else if (playerNum > (dealerNum || 0)) {
+    } else if (playerNum > dealerNum) {
       swalConfig = {
         title: "Player Win",
         text: `Dealer: ${dealerNum},Player: ${playerNum}`,
       };
-      appCtx.setBank((prevState) => prevState + bet * 2);
     } else {
       swalConfig = {
         title: "Push",
         text: `Dealer: ${dealerNum},Player: ${playerNum}`,
       };
+    }
+    if (swalConfig.title === "Player Win") {
+      if (blackjack) {
+        appCtx.setBank((prevState) => prevState + bet * 2.5);
+      } else {
+        appCtx.setBank((prevState) => prevState + bet * 2);
+      }
+    } else if (swalConfig.title === "Push") {
       appCtx.setBank((prevState) => prevState + bet);
     }
     swal(swalConfig).then(() => {
@@ -56,20 +62,16 @@ const ControlPanel = ({}: ControlPanelProps) => {
 
   const Stand = () => {
     const { changed, context } = appCtx.sendMachineState("Stand");
-    if (changed) {
-      end(context);
-    }
+    if (changed) end(context);
   };
 
   const Double = () => {
     const { changed, context } = appCtx.sendMachineState("Double");
-    if (changed) {
-      end(context);
-    }
+    if (changed) end(context);
   };
 
   return (
-    <div className="row justify-content-around">
+    <div className="row justify-content-around ">
       <div className="col d-flex justify-content-center">
         <antd.Button type="primary" onClick={Hit}>
           Hit
@@ -77,6 +79,7 @@ const ControlPanel = ({}: ControlPanelProps) => {
       </div>
       <div className="col d-flex justify-content-center">
         {appCtx.playerCards.length === 2 &&
+        appCtx.bank > roundbet &&
         cardnumCalc(appCtx.playerCards) === 11 ? (
           <antd.Button type="primary" onClick={Double}>
             Double

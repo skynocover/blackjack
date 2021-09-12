@@ -62,7 +62,9 @@ interface AppContextProps {
     }
   >;
   deckCardNumber: number;
-  // setDouble: (input: boolean) => void;
+
+  backgroundImage: string;
+  setBackgroundImage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AppContext = React.createContext<AppContextProps>(undefined!);
@@ -94,10 +96,11 @@ const AppProvider = ({ children }: AppProviderProps) => {
 
   const [account, setAccount] = React.useState("");
 
-  // const [decks, setDecks] = React.useState<number>(1);
   const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
 
   const [bank, setBank] = React.useState<number>(1000);
+
+  const [backgroundImage, setBackgroundImage] = React.useState<string>("bg1");
 
   const [dealerCards, setDealerCards] = React.useState<Card[]>(initCards);
   const [playerCards, setPlayerCards] = React.useState<Card[]>(initCards);
@@ -110,15 +113,6 @@ const AppProvider = ({ children }: AppProviderProps) => {
     return { dealerCards, playerCards };
   };
 
-  // const setDouble = (input: boolean) => {
-  //   double = input;
-  //   if (input) {
-  //     setBank((prevState) => (prevState -= roundbet));
-  //     game.playerDraw();
-  //     setCard();
-  //   }
-  // };
-
   const checkShuffle = () => {
     const { deckCardNumber } = game.getCard();
     if (shuffleDeck || deckCardNumber < (decks * 52) / 2) {
@@ -128,6 +122,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
         duration: 1,
       });
       shuffleDeck = false;
+      setDeckCardNumber(decks * 52);
     }
   };
 
@@ -157,6 +152,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             double = false;
             setDealerCards(initCards);
             setPlayerCards(initCards);
+            checkShuffle();
           },
         },
         deal: {
@@ -175,7 +171,6 @@ const AppProvider = ({ children }: AppProviderProps) => {
           onEntry: (context: any, event: any) => {
             const { bet } = event;
             roundbet = bet;
-            checkShuffle();
             game.deal();
             const { playerCards } = setCard();
             if (playerCards.length === 2 && cardnumCalc(playerCards) === 21) {
@@ -212,6 +207,10 @@ const AppProvider = ({ children }: AppProviderProps) => {
             }
             const { playerCards } = setCard();
             const playerNum = cardnumCalc(playerCards);
+            context.blackjack = false;
+            if (playerCards.length === 2 && playerNum === 21) {
+              context.blackjack = true;
+            }
             context.playerNum = playerNum;
             context.dealerNum = dealerNum;
             context.bet = double ? roundbet * 2 : roundbet;
@@ -350,13 +349,13 @@ const AppProvider = ({ children }: AppProviderProps) => {
         setBank,
 
         dealerCards,
-        // setDealerCards,
         playerCards,
-        // setPlayerCards,
         machineState,
         sendMachineState,
         deckCardNumber,
-        // setDouble,
+
+        backgroundImage,
+        setBackgroundImage,
       }}
     >
       {modal && (

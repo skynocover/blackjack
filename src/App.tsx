@@ -15,7 +15,14 @@ function App() {
   return (
     <antd.Layout className="bg-white">
       <Header />
-      <antd.Layout.Content style={{ overflow: "auto" }}>
+      <antd.Layout.Content
+        className="bg-image h-100 pb-3"
+        style={{
+          overflow: "auto",
+          backgroundImage: `url("/assets/image/${appCtx.backgroundImage}.jpg")`,
+          backgroundSize: "cover",
+        }}
+      >
         <div className="container">
           <Cards cards={appCtx.dealerCards} />
           <ControlPanel />
@@ -34,3 +41,8 @@ export default App;
 // Hit
 // Double
 // Dealer
+// className="bg-image"
+//       style={{
+//         backgroundImage:
+//           "/assets/image/joachim-schnurle-yQL3yVk5ghI-unsplash.jpg",
+//       }}
