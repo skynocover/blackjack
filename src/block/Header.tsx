@@ -40,9 +40,6 @@ const Header = () => {
               <antd.Button type="link" onClick={() => appCtx.sendMachineState('ReStart')}>
                 Restart
               </antd.Button>
-              <antd.Button type="link" danger onClick={() => appCtx.logout()}>
-                CheckOut
-              </antd.Button>
             </div>
           }
         >
