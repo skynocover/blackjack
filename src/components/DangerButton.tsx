@@ -1,5 +1,5 @@
-import React from "react";
-import * as antd from "antd";
+import React from 'react';
+import * as antd from 'antd';
 
 interface DangerButtonProps {
   title: string;
@@ -8,19 +8,14 @@ interface DangerButtonProps {
   disabled?: boolean;
 }
 
-const DangerButton = ({
-  title,
-  message,
-  onClick,
-  disabled,
-}: DangerButtonProps) => {
+const DangerButton = ({ title, message, onClick, disabled }: DangerButtonProps) => {
   const showDialog = () => {
     antd.Modal.confirm({
-      title: "Confirm",
+      title: 'Confirm',
       icon: <i />,
       content: message,
-      okText: "Confirm?",
-      cancelText: "Cancel",
+      okText: 'Confirm?',
+      cancelText: 'Cancel',
       onOk: onClick,
     });
   };

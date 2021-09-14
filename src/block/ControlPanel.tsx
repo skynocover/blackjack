@@ -1,73 +1,58 @@
-import React from "react";
-import * as antd from "antd";
-import swal from "sweetalert";
-import { AppContext, double, roundbet } from "../AppContext";
-import { cardnumCalc } from "../utils/cardnum";
+import React from 'react';
+import * as antd from 'antd';
+import swal from 'sweetalert';
+import { AppContext, game } from '../AppContext';
+import { cardnumCalc } from '../utils/cardnum';
 
-interface ControlPanelProps {}
-
-const ControlPanel = ({}: ControlPanelProps) => {
+const ControlPanel = () => {
   const appCtx = React.useContext(AppContext);
 
-  const end = (context: any) => {
-    const { playerNum, dealerNum, bet, blackjack } = context;
-    let swalConfig: any = {};
-    if (playerNum > 21) {
-      swalConfig = {
-        title: "Dealer Win",
-        text: `Player Bust: ${playerNum}`,
-      };
-    } else if (dealerNum > 21) {
-      swalConfig = {
-        title: "Player Win",
-        text: `Dealer Bust: ${dealerNum}`,
-      };
-    } else if (dealerNum > playerNum) {
-      swalConfig = {
-        title: "Dealer Win",
-        text: `Dealer: ${dealerNum},Player: ${playerNum}`,
-      };
-    } else if (playerNum > dealerNum) {
-      swalConfig = {
-        title: "Player Win",
-        text: `Dealer: ${dealerNum},Player: ${playerNum}`,
-      };
-    } else {
-      swalConfig = {
-        title: "Push",
-        text: `Dealer: ${dealerNum},Player: ${playerNum}`,
-      };
+  const end = async (context: any) => {
+    const { swalConfig } = context;
+
+    for (const config of swalConfig) {
+      await swal(config);
     }
-    if (swalConfig.title === "Player Win") {
-      if (blackjack) {
-        appCtx.setBank((prevState) => prevState + bet * 2.5);
-      } else {
-        appCtx.setBank((prevState) => prevState + bet * 2);
-      }
-    } else if (swalConfig.title === "Push") {
-      appCtx.setBank((prevState) => prevState + bet);
-    }
-    swal(swalConfig).then(() => {
-      appCtx.sendMachineState("NextRound");
-    });
+    const { context: context2 } = game.GameMachine.send('NextRound');
+    appCtx.sendMachineState('NextRound', { shuffle: context2.shuffle });
   };
 
   const Hit = () => {
-    const { changed, context } = appCtx.sendMachineState("Hit");
-    if (changed && context.num > 21) {
-      const { context } = appCtx.sendMachineState("Stand");
-      end(context);
+    const { changed, context } = game.GameMachine.send('Hit');
+    if (!changed) return;
+
+    appCtx.sendMachineState('Hit');
+
+    if (context.num > 21) {
+      const { context } = game.GameMachine.send('End');
+      appCtx.sendMachineState('End');
+      if (!context.split) end(context);
     }
   };
 
   const Stand = () => {
-    const { changed, context } = appCtx.sendMachineState("Stand");
-    if (changed) end(context);
+    const { changed, context } = game.GameMachine.send('End');
+    if (!changed) return;
+
+    appCtx.sendMachineState('End');
+
+    if (!context.split) end(context);
   };
 
   const Double = () => {
-    const { changed, context } = appCtx.sendMachineState("Double");
-    if (changed) end(context);
+    const { changed, context } = game.GameMachine.send('Double');
+    if (!changed) return;
+
+    appCtx.sendMachineState('Double');
+    end(context);
+  };
+
+  const Split = () => {
+    const { changed, context } = game.GameMachine.send('Split');
+    if (!changed) return;
+
+    appCtx.setSplitCard(context.card);
+    appCtx.sendMachineState('Split', { card: context.card });
   };
 
   return (
@@ -78,23 +63,31 @@ const ControlPanel = ({}: ControlPanelProps) => {
         </antd.Button>
       </div>
       <div className="col d-flex justify-content-center">
-        {appCtx.playerCards.length === 2 &&
-        appCtx.bank > roundbet &&
-        cardnumCalc(appCtx.playerCards) === 11 ? (
-          <antd.Button type="primary" onClick={Double}>
-            Double
-          </antd.Button>
-        ) : (
-          <antd.Button type="dashed" disabled={true}>
-            Double
-          </antd.Button>
-        )}
-        {double && <span className="ml-2">{roundbet}</span>}
+        {appCtx.machineState.value === 'deal' &&
+          appCtx.playerCards.length === 2 &&
+          appCtx.bank >= appCtx.roundbet &&
+          cardnumCalc(appCtx.playerCards) === 11 && (
+            <antd.Button type="primary" onClick={Double}>
+              Double
+            </antd.Button>
+          )}
       </div>
       <div className="col d-flex justify-content-center">
-        <antd.Button type="primary" onClick={Stand}>
-          Stand
-        </antd.Button>
+        <div className="mx-2">
+          <antd.Button type="primary" onClick={Stand}>
+            Stand
+          </antd.Button>
+        </div>
+        {appCtx.machineState.value === 'deal' &&
+          appCtx.playerCards.length === 2 &&
+          appCtx.bank >= appCtx.roundbet &&
+          cardnumCalc([appCtx.playerCards[0]]) === cardnumCalc([appCtx.playerCards[1]]) && (
+            <div>
+              <antd.Button type="primary" onClick={Split}>
+                Split
+              </antd.Button>
+            </div>
+          )}
       </div>
     </div>
   );

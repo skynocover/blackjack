@@ -1,4 +1,4 @@
-import { Card } from "../class/Card";
+import { Card } from '../class/Card';
 
 export const cardnumCalc = (cards: Card[]): number => {
   let num = 0;
@@ -6,12 +6,12 @@ export const cardnumCalc = (cards: Card[]): number => {
   for (const c of cards) {
     // console.log(c);
     switch (c.number) {
-      case "ace":
+      case 'ace':
         num += 11;
         break;
-      case "jack":
-      case "queen":
-      case "king":
+      case 'jack':
+      case 'queen':
+      case 'king':
         num += 10;
         break;
       default:
@@ -21,7 +21,7 @@ export const cardnumCalc = (cards: Card[]): number => {
   }
   if (num > 21) {
     for (const c of cards) {
-      if (c.number === "ace") {
+      if (c.number === 'ace') {
         num -= 10;
         if (num <= 21) {
           break;

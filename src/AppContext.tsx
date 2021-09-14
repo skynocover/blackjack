@@ -1,20 +1,11 @@
-import React from "react";
-import * as antd from "antd";
-import {
-  Interpreter,
-  AnyEventObject,
-  createMachine,
-  interpret,
-  EventData,
-  State,
-  send,
-} from "xstate";
-import swal from "sweetalert";
-import { Game } from "./class/Game";
-import { Card } from "./class/Card";
-import { Notification } from "./components/Notification";
-import { useMachine } from "@xstate/react";
-import { cardnumCalc } from "./utils/cardnum";
+import React from 'react';
+import * as antd from 'antd';
+import { createMachine, EventData, State } from 'xstate';
+import { Game } from './class/Game';
+import { Card } from './class/Card';
+import { Notification } from './components/Notification';
+import { useMachine } from '@xstate/react';
+import { cardnumCalc } from './utils/cardnum';
 
 interface AppContextProps {
   loginPage: string;
@@ -25,20 +16,14 @@ interface AppContextProps {
   setAccount: (value: string) => void;
 
   fetch: (
-    method: "get" | "post" | "put" | "delete" | "patch",
+    method: 'get' | 'post' | 'put' | 'delete' | 'patch',
     url: string,
-    param?: any
+    param?: any,
   ) => Promise<any>;
 
   login: (account: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   redirect: () => Promise<void>;
-
-  bank: number;
-  setBank: React.Dispatch<React.SetStateAction<number>>;
-
-  dealerCards: Card[];
-  playerCards: Card[];
 
   machineState: State<
     any,
@@ -51,7 +36,7 @@ interface AppContextProps {
   >;
   sendMachineState: (
     event: any,
-    payload?: EventData | undefined
+    payload?: EventData | undefined,
   ) => State<
     any,
     any,
@@ -61,10 +46,21 @@ interface AppContextProps {
       context: any;
     }
   >;
+
+  dealerCards: Card[];
+  playerCards: Card[];
   deckCardNumber: number;
+  bank: number;
+  roundbet: number;
+
+  splitCard: Card[];
+  setSplitCard: React.Dispatch<React.SetStateAction<Card[]>>;
 
   backgroundImage: string;
   setBackgroundImage: React.Dispatch<React.SetStateAction<string>>;
+
+  decks: number;
+  setDecks: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const AppContext = React.createContext<AppContextProps>(undefined!);
@@ -73,196 +69,142 @@ interface AppProviderProps {
   children: React.ReactNode;
 }
 
-let shuffleDeck = false;
-export const setShuffleDeck = (input: boolean) => (shuffleDeck = input);
-
-let game = new Game();
-export let roundbet = 0;
-export let double = false;
-
-export let decks = 1;
-export const setDecks = (input: number) => (decks = input);
+export let game = new Game();
 
 const AppProvider = ({ children }: AppProviderProps) => {
-  const initCards: Card[] = [
-    { name: "card_back.jpg", number: "0", suit: "" },
-    { name: "card_back.jpg", number: "0", suit: "" },
-  ];
-
-  const [loginPage] = React.useState("/#/login");
-  const [homePage] = React.useState("/#/global");
+  const [loginPage] = React.useState('/#/login');
+  const [homePage] = React.useState('/#/global');
   const [modal, setModal] = React.useState<any>(null);
   const [modalWidth, setModalWidth] = React.useState<number>(416);
 
-  const [account, setAccount] = React.useState("");
+  const [account, setAccount] = React.useState('');
 
+  const [roundbet, setRoundbet] = React.useState<number>(0);
   const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
-
+  const [decks, setDecks] = React.useState<number>(1);
   const [bank, setBank] = React.useState<number>(1000);
+  const [backgroundImage, setBackgroundImage] = React.useState<string>('bg1');
 
-  const [backgroundImage, setBackgroundImage] = React.useState<string>("bg1");
+  const [splitCard, setSplitCard] = React.useState<Card[]>([]);
 
-  const [dealerCards, setDealerCards] = React.useState<Card[]>(initCards);
-  const [playerCards, setPlayerCards] = React.useState<Card[]>(initCards);
+  const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
+  const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
 
-  const setCard = () => {
-    const { dealerCards, playerCards, deckCardNumber } = game.getCard();
+  const setInfo = () => {
+    const { bank, decks, dealerCards, playerCards, deckCardNumber, splitCard } = game.info();
+    setBank(bank);
+    setDecks(decks);
     setDealerCards(dealerCards);
     setPlayerCards(playerCards);
     setDeckCardNumber(deckCardNumber);
-    return { dealerCards, playerCards };
-  };
+    setSplitCard(splitCard);
 
-  const checkShuffle = () => {
-    const { deckCardNumber } = game.getCard();
-    if (shuffleDeck || deckCardNumber < (decks * 52) / 2) {
-      game.shuffleDeck(decks);
-      antd.notification.success({
-        message: "Shuffle Decks",
-        duration: 1,
-      });
-      shuffleDeck = false;
-      setDeckCardNumber(decks * 52);
-    }
+    return { dealerCards, playerCards };
   };
 
   const machine = createMachine(
     {
-      id: "game",
-      initial: "beforeStart",
+      id: 'game',
+      initial: 'beforeStart',
+      context: {},
       states: {
         beforeStart: {
-          on: { Start: "roundStart" },
+          on: { Start: 'start' },
           onEntry: (state, context) => {
-            setBank(1000);
             game = new Game();
-            game.shuffleDeck(decks);
+            setInfo();
             setDeckCardNumber(decks * 52);
           },
         },
-        roundStart: {
+        start: {
           on: {
-            ReStart: {
-              target: "beforeStart",
-              actions: ["restart"],
-            },
-            Deal: "deal",
+            ReStart: 'beforeStart',
+            Deal: 'deal',
           },
           onEntry: (context: any, event: any) => {
-            double = false;
-            setDealerCards(initCards);
-            setPlayerCards(initCards);
-            checkShuffle();
+            setInfo();
+            if (event.shuffle) {
+              antd.notification.success({
+                message: 'Shuffle Decks',
+                duration: 1,
+              });
+              setDeckCardNumber(decks * 52);
+            }
           },
         },
         deal: {
           on: {
-            ReStart: {
-              target: "beforeStart",
-              actions: ["restart"],
-            },
-            Hit: { target: "hit", actions: ["hit"] },
-            Double: {
-              target: "stand",
-              actions: ["double"],
-            },
-            Stand: "stand",
+            ReStart: 'beforeStart',
+            Hit: { target: 'hit', actions: ['hit'] },
+            Double: { target: 'end', actions: ['double', 'end'] },
+            End: { target: 'end', actions: ['end'] },
+            Split: { target: 'split', actions: ['split'] },
           },
           onEntry: (context: any, event: any) => {
             const { bet } = event;
-            roundbet = bet;
-            game.deal();
-            const { playerCards } = setCard();
+            setRoundbet(bet);
+            const { playerCards } = setInfo();
             if (playerCards.length === 2 && cardnumCalc(playerCards) === 21) {
               antd.notification.success({
-                message: "Black Jack!!",
+                message: 'Black Jack!!',
                 duration: 1.5,
               });
             }
           },
         },
+        split: {
+          on: {
+            ReStart: 'beforeStart',
+            Hit: { actions: ['hit'] },
+            End: { target: 'hit', actions: ['hit'] },
+          },
+          onEntry: (context: any, event: any) => {
+            setInfo();
+          },
+        },
         hit: {
           on: {
-            ReStart: {
-              target: "beforeStart",
-              actions: ["restart"],
-            },
-            Hit: { actions: ["hit"] },
-            Stand: "stand",
+            ReStart: 'beforeStart',
+            Hit: { actions: ['hit'] },
+            End: 'end',
           },
         },
-        stand: {
+        end: {
           on: {
-            End: "End",
-            ReStart: {
-              target: "beforeStart",
-              actions: ["restart"],
-            },
-            NextRound: "roundStart",
+            ReStart: 'beforeStart',
+            NextRound: { target: 'start' },
           },
           onEntry: (context: any, event: any) => {
-            let dealerNum = 0;
-            while (dealerNum < 17) {
-              dealerNum = game.dealerDraw() || 0;
-            }
-            const { playerCards } = setCard();
-            const playerNum = cardnumCalc(playerCards);
-            context.blackjack = false;
-            if (playerCards.length === 2 && playerNum === 21) {
-              context.blackjack = true;
-            }
-            context.playerNum = playerNum;
-            context.dealerNum = dealerNum;
-            context.bet = double ? roundbet * 2 : roundbet;
+            setInfo();
+            // setStoreCard([]);
           },
-        },
-        End: {
-          on: {
-            ReStart: {
-              target: "beforeStart",
-              actions: ["restart"],
-            },
-          },
-
-          onEntry: (context: any, event: any) => {
-            console.log("end!!!!");
-          },
-          onExit: () => {}, //退出
         },
       },
     },
     {
       actions: {
         hit: async (context, event) => {
-          context.num = game.playerDraw() || 0;
-          setCard();
+          setInfo();
         },
         restart: () => {
-          setDealerCards(initCards);
-          setPlayerCards(initCards);
-        },
-        double: () => {
-          setBank((prevState) => (prevState -= roundbet));
-          game.playerDraw();
-          setCard();
-          double = true;
+          setDealerCards([]);
+          setPlayerCards([]);
         },
       },
-    }
+    },
   );
 
   const [machineState, sendMachineState] = useMachine(machine);
 
   React.useEffect(() => {
-    // console.log(machineState.value);
-    // console.log("state game id: ", game.getID());
+    console.log('front-end: ', machineState.value);
   }, [machineState]);
   /////////////////////////////////////////////////////
 
   const fetch = async (
-    method: "get" | "post" | "put" | "delete" | "patch",
+    method: 'get' | 'post' | 'put' | 'delete' | 'patch',
     url: string,
-    param?: any
+    param?: any,
   ) => {
     let data: any = null;
 
@@ -273,7 +215,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
       //     data: param,
       //   });
       const response: any = {};
-      console.log("response", response.data);
+      console.log('response', response.data);
 
       if (response.data.errorCode === 2) {
         window.location.href = loginPage;
@@ -286,14 +228,14 @@ const AppProvider = ({ children }: AppProviderProps) => {
 
       data = response.data;
     } catch (error: any) {
-      Notification.add("error", error.message);
+      Notification.add('error', error.message);
     }
 
     return data;
   };
 
   const login = async (account: string, password: string): Promise<any> => {
-    const data = await fetch("post", `/api/account/login`, {
+    const data = await fetch('post', `/api/account/login`, {
       account,
       password,
     });
@@ -302,7 +244,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
 
     if (data) {
       if (data.errorCode === 0) {
-        Notification.add("success", "Login");
+        Notification.add('success', 'Login');
         window.location.href = homePage;
       } else {
         window.location.href = loginPage;
@@ -313,12 +255,12 @@ const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const logout = async () => {
-    await fetch("post", "/api/account/logout", {});
+    await fetch('post', '/api/account/logout', {});
     window.location.href = loginPage;
   };
 
   const redirect = async () => {
-    const data = await fetch("get", `/api/redirect`);
+    const data = await fetch('get', `/api/redirect`);
     if (data) {
       window.location.href = homePage;
     }
@@ -345,17 +287,23 @@ const AppProvider = ({ children }: AppProviderProps) => {
         logout,
         redirect,
 
-        bank,
-        setBank,
+        machineState,
+        sendMachineState,
 
         dealerCards,
         playerCards,
-        machineState,
-        sendMachineState,
         deckCardNumber,
+        bank,
+        roundbet,
+
+        splitCard,
+        setSplitCard,
 
         backgroundImage,
         setBackgroundImage,
+
+        decks,
+        setDecks,
       }}
     >
       {modal && (

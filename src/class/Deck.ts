@@ -1,21 +1,40 @@
-import { Card } from "./Card";
+import { Card } from './Card';
+// const cardNumber: string[] = [
+//   'ace',
+//   '2',
+//   '3',
+//   '4',
+//   '5',
+//   '6',
+//   '7',
+//   '8',
+//   '9',
+//   '10',
+//   'jack',
+//   'queen',
+//   'king',
+// ];
+
 const cardNumber: string[] = [
-  "ace",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "jack",
-  "queen",
-  "king",
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+  '6',
+
+  '10',
+  '10',
+  '10',
 ];
 
-const cardSuit: string[] = ["clubs", "diamonds", "hearts", "spades"];
+const cardSuit: string[] = ['clubs', 'diamonds', 'hearts', 'spades'];
 
 class Deck {
   private cards: Card[];

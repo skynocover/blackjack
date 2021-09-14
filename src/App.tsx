@@ -1,32 +1,31 @@
-import React from "react";
-import logo from "./logo.svg";
-import "./App.css";
-import * as antd from "antd";
-import { AppContext } from "./AppContext";
+import React from 'react';
+import './App.css';
+import * as antd from 'antd';
+import { AppContext } from './AppContext';
 
-import { Cards } from "./block/Cards";
-import { ControlPanel } from "./block/ControlPanel";
-import { BankPanel } from "./block/BankPanel";
-import { Header } from "./block/Header";
+import { Cards } from './block/Cards';
+import { ControlPanel } from './block/ControlPanel';
+import { BankPanel } from './block/BankPanel';
+import { Header } from './block/Header';
 
 function App() {
   const appCtx = React.useContext(AppContext);
 
   return (
-    <antd.Layout className="bg-white">
+    <antd.Layout className="bg-white vh-100">
       <Header />
       <antd.Layout.Content
-        className="bg-image h-100 pb-3"
+        className="bg-image"
         style={{
-          overflow: "auto",
+          overflow: 'auto',
           backgroundImage: `url("/assets/image/${appCtx.backgroundImage}.jpg")`,
-          backgroundSize: "cover",
+          backgroundSize: 'cover',
         }}
       >
-        <div className="container">
-          <Cards cards={appCtx.dealerCards} />
+        <div className="container h-100">
+          <Cards type={'dealer'} cards={appCtx.dealerCards} />
           <ControlPanel />
-          <Cards cards={appCtx.playerCards} />
+          <Cards type={'player'} cards={appCtx.playerCards} />
           <BankPanel />
         </div>
       </antd.Layout.Content>
@@ -35,14 +34,3 @@ function App() {
 }
 
 export default App;
-// Bust
-// Split
-// Stand
-// Hit
-// Double
-// Dealer
-// className="bg-image"
-//       style={{
-//         backgroundImage:
-//           "/assets/image/joachim-schnurle-yQL3yVk5ghI-unsplash.jpg",
-//       }}
