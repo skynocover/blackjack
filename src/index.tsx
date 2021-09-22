@@ -7,6 +7,7 @@ import { AppProvider } from './AppContext';
 
 import 'antd/dist/antd.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'font-awesome/css/font-awesome.min.css';
 
 ReactDOM.render(
   <AppProvider>

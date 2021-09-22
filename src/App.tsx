@@ -1,35 +1,28 @@
-import React from 'react';
 import './App.css';
-import * as antd from 'antd';
-import { AppContext } from './AppContext';
+import * as ReactRouterDOM from 'react-router-dom';
 
-import { Cards } from './block/Cards';
-import { ControlPanel } from './block/ControlPanel';
-import { BankPanel } from './block/BankPanel';
-import { Header } from './block/Header';
+import { LaunchPage, LoginPage, NotFoundPage } from './pages/LaunchPage';
+import { GamePage } from './pages/GamePage';
+import { LobbyPage } from './pages/LobbyPage';
 
 function App() {
-  const appCtx = React.useContext(AppContext);
-
   return (
-    <antd.Layout className="bg-white vh-100">
-      <Header />
-      <antd.Layout.Content
-        className="bg-image"
-        style={{
-          overflow: 'auto',
-          backgroundImage: `url("/assets/image/${appCtx.backgroundImage}.jpg")`,
-          backgroundSize: 'cover',
-        }}
-      >
-        <div className="container h-100">
-          <Cards type={'dealer'} cards={appCtx.dealerCards} />
-          <ControlPanel />
-          <Cards type={'player'} cards={appCtx.playerCards} />
-          <BankPanel />
-        </div>
-      </antd.Layout.Content>
-    </antd.Layout>
+    <ReactRouterDOM.HashRouter>
+      <ReactRouterDOM.Switch>
+        <ReactRouterDOM.Route path="/" exact component={LaunchPage} />
+        <ReactRouterDOM.Route path="/login" component={LoginPage} />
+        <ReactRouterDOM.Route path="/lobby" component={LobbyPage} />
+        <ReactRouterDOM.Route path="/game" component={GamePage} />
+
+        {/* {menus.map((item) => (
+          <ReactRouterDOM.Route key={item.key} path={item.key}>
+            <MainPage menus={menus} title={item.title} icon={item.icon} content={item.component} />
+          </ReactRouterDOM.Route>
+        ))} */}
+
+        <ReactRouterDOM.Route path="*" component={NotFoundPage} />
+      </ReactRouterDOM.Switch>
+    </ReactRouterDOM.HashRouter>
   );
 }
 

@@ -6,14 +6,21 @@ import { Card } from './class/Card';
 import { Notification } from './components/Notification';
 import { useMachine } from '@xstate/react';
 import { cardnumCalc } from './utils/cardnum';
+import * as Colyseus from 'colyseus.js';
+import { auth } from './firebase/firebase';
+import axios from 'axios';
+import { joinLobby } from './class/Lobby';
 
 interface AppContextProps {
   loginPage: string;
-  homePage: string;
+  lobbyPage: string;
   setModal: (modal: React.ReactNode | null, width?: number) => void;
 
   account: string;
   setAccount: (value: string) => void;
+
+  token: string;
+  setToken: React.Dispatch<React.SetStateAction<string>>;
 
   fetch: (
     method: 'get' | 'post' | 'put' | 'delete' | 'patch',
@@ -21,9 +28,8 @@ interface AppContextProps {
     param?: any,
   ) => Promise<any>;
 
-  login: (account: string, password: string) => Promise<any>;
+  redirect: () => Promise<boolean>;
   logout: () => Promise<void>;
-  redirect: () => Promise<void>;
 
   machineState: State<
     any,
@@ -61,6 +67,9 @@ interface AppContextProps {
 
   decks: number;
   setDecks: React.Dispatch<React.SetStateAction<number>>;
+
+  room: Colyseus.Room<any> | undefined;
+  setRoom: React.Dispatch<React.SetStateAction<Colyseus.Room<any> | undefined>>;
 }
 
 const AppContext = React.createContext<AppContextProps>(undefined!);
@@ -73,11 +82,12 @@ export let game = new Game();
 
 const AppProvider = ({ children }: AppProviderProps) => {
   const [loginPage] = React.useState('/#/login');
-  const [homePage] = React.useState('/#/global');
+  const [lobbyPage] = React.useState('/#/lobby');
   const [modal, setModal] = React.useState<any>(null);
   const [modalWidth, setModalWidth] = React.useState<number>(416);
 
-  const [account, setAccount] = React.useState('');
+  const [account, setAccount] = React.useState<string>('');
+  const [token, setToken] = React.useState<string>('');
 
   const [roundbet, setRoundbet] = React.useState<number>(0);
   const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
@@ -89,6 +99,8 @@ const AppProvider = ({ children }: AppProviderProps) => {
 
   const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
   const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
+
+  const [room, setRoom] = React.useState<Colyseus.Room>();
 
   const setInfo = () => {
     const { bank, decks, dealerCards, playerCards, deckCardNumber, splitCard } = game.info();
@@ -209,15 +221,15 @@ const AppProvider = ({ children }: AppProviderProps) => {
     let data: any = null;
 
     try {
-      //   const response = await axios({
-      //     method,
-      //     url,
-      //     data: param,
-      //   });
-      const response: any = {};
+      const response = await axios({
+        method,
+        url,
+        data: param,
+        headers: { Authorization: token },
+      });
       console.log('response', response.data);
 
-      if (response.data.errorCode === 2) {
+      if (response.data.errorCode === 9999 || response.data.errorCode === 3002) {
         window.location.href = loginPage;
         return null;
       }
@@ -234,36 +246,28 @@ const AppProvider = ({ children }: AppProviderProps) => {
     return data;
   };
 
-  const login = async (account: string, password: string): Promise<any> => {
-    const data = await fetch('post', `/api/account/login`, {
-      account,
-      password,
-    });
-
-    setAccount(account);
-
-    if (data) {
-      if (data.errorCode === 0) {
-        Notification.add('success', 'Login');
-        window.location.href = homePage;
-      } else {
-        window.location.href = loginPage;
-      }
-    } else {
-      window.location.href = loginPage;
-    }
-  };
-
   const logout = async () => {
-    await fetch('post', '/api/account/logout', {});
+    await auth.signOut();
+
     window.location.href = loginPage;
   };
 
-  const redirect = async () => {
-    const data = await fetch('get', `/api/redirect`);
-    if (data) {
-      window.location.href = homePage;
-    }
+  const redirect = async (): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+      auth.onAuthStateChanged(async (user) => {
+        console.log('user: ', user);
+        const token = await user?.getIdToken();
+        if (!token) {
+          window.location.href = loginPage;
+          reject(false);
+          return;
+        }
+        setToken(token);
+
+        window.location.href = lobbyPage;
+        resolve(true);
+      });
+    });
   };
 
   /////////////////////////////////////////////////////
@@ -272,7 +276,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
     <AppContext.Provider
       value={{
         loginPage,
-        homePage,
+        lobbyPage,
         setModal: (modal: React.ReactNode | null, width: number = 520) => {
           setModalWidth(width);
           setModal(modal);
@@ -281,11 +285,13 @@ const AppProvider = ({ children }: AppProviderProps) => {
         account,
         setAccount,
 
+        token,
+        setToken,
+
         fetch,
 
-        login,
-        logout,
         redirect,
+        logout,
 
         machineState,
         sendMachineState,
@@ -304,6 +310,9 @@ const AppProvider = ({ children }: AppProviderProps) => {
 
         decks,
         setDecks,
+
+        room,
+        setRoom,
       }}
     >
       {modal && (

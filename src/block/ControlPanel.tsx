@@ -35,7 +35,6 @@ const ControlPanel = () => {
     if (!changed) return;
 
     appCtx.sendMachineState('End');
-
     if (!context.split) end(context);
   };
 
