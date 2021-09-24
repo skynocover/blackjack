@@ -2,39 +2,104 @@ import React from 'react';
 import { AppContext } from '../AppContext';
 import * as antd from 'antd';
 import { SuitSpadeFill } from 'react-bootstrap-icons';
+import { client } from '../class/colyseus';
 
+import { Notification } from '../components/Notification';
 import { Cards } from '../block/Cards';
 import { ControlPanel } from '../block/ControlPanel';
 import { BankPanel } from '../block/BankPanel';
-
-interface player {
-  name: string;
-}
+import { Card } from '../class/Card';
+import { MenuPlayer, player } from '../block/MenuPlayer';
+import { Player } from '../class/Player';
+import swal from 'sweetalert';
+import { cardnumCalc } from '../utils/cardnum';
 
 const GamePage = () => {
   const appCtx = React.useContext(AppContext);
   const [players, setPlayers] = React.useState<player[]>([]);
 
+  const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
+  const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
+  const [splitCard, setSplitCard] = React.useState<Card[]>([]);
+  const [bank, setBank] = React.useState<number>(1000);
+  const [bet, setBet] = React.useState<number>(0);
+  const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
+
   React.useEffect(() => {
-    setPlayers([{ name: 'aaa' }]);
     if (!appCtx.room) {
       window.location.href = '/#/lobby';
       return;
     }
+
+    appCtx.room.onStateChange((state) => {
+      // console.log(state);
+      const { players, dealerHandCard, deck, cardDecks } = state;
+      setPlayers([...players]);
+      setDealerCards(dealerHandCard);
+      const p = players.filter((item: any) => item.name === appCtx.name);
+      // console.log('state: ', p[0].state);
+      if (p[0].handCard.length === 2 && cardnumCalc(p[0].handCard) === 21) {
+        Notification.add('success', 'Black Jack');
+      }
+      setPlayerCards(p[0].handCard);
+      setSplitCard(p[0].splitCard);
+      console.log(JSON.stringify(p[0].splitCard));
+      setDeckCardNumber(deck.cards.length);
+    });
+
     appCtx.room.send('info');
     appCtx.room.onMessage('info', (data) => {
-      // console.log(data);
       setPlayers(data.players);
     });
 
-    appCtx.room.onMessage('newPlayer', (data) => {
-      appCtx.room?.send('info');
+    appCtx.room.onMessage('playerJoin', (data) => {
+      setPlayers(data.players);
+    });
+    appCtx.room.onMessage('playerLeave', (data) => {
+      setPlayers(data.players);
+    });
+
+    appCtx.room.onMessage('AllDeal', (data) => {});
+
+    appCtx.room.onMessage('Bank', (data) => setBank(data));
+    appCtx.room.onMessage('Bet', (data) => setBet(data));
+
+    appCtx.room.onMessage('Start', (data) => {
+      const { shuffle } = data;
+      if (shuffle) {
+        Notification.add('success', 'shuffle decks');
+      }
+      setDealerCards([]);
+      setPlayerCards([]);
+      setSplitCard([]);
+      const temp = players.map((p) => {
+        p.handCard = [];
+        return p;
+      });
+      setPlayers([...temp]);
+      appCtx.sendMachineState('Start', { shuffle: false });
+    });
+
+    appCtx.room.onMessage('End', async (data) => {
+      const { players, dealerHandCard } = data;
+      setDealerCards(dealerHandCard);
+
+      const dealNum = cardnumCalc(dealerHandCard);
+      const p = players.filter((item: any) => item.name === appCtx.name);
+      const { title, text } = Swal(dealNum, p[0].handCard);
+      await swal(title, text);
+      if (p[0].splitCard.length !== 0) {
+        const { title, text } = Swal(dealNum, p[0].splitCard);
+        await swal(title, text);
+      }
+      appCtx.room?.send('CheckOut');
     });
   }, []);
 
   const leaveRoom = async () => {
-    // console.log(appCtx.room)
     appCtx.room?.leave();
+    appCtx.setRoom(undefined);
+    appCtx.sendMachineState('ReStart');
     window.location.href = '/#/lobby';
   };
 
@@ -58,8 +123,8 @@ const GamePage = () => {
           </antd.Select>
         </div>
         <div className="col-4 d-flex justify-content-center">
-          <span className="mx-2">Bank: {appCtx.bank}</span>
-          <span>Cards: {appCtx.deckCardNumber}</span>
+          <span className="mx-2">Bank: {bank}</span>
+          <span>Cards: {deckCardNumber}</span>
         </div>
         <div className="col-4 d-flex justify-content-end align-items-center">
           <antd.Popover
@@ -84,18 +149,20 @@ const GamePage = () => {
 
   const Sider = () => {
     return (
-      <antd.Layout.Sider width={200} className="site-layout-background">
-        <antd.Menu>
-          {players.map((player) => {
-            return (
-              <antd.Menu.Item key={player.name}>
-                <span className="d-flex align-items-center">
-                  <span>{player.name}</span>
-                </span>
-              </antd.Menu.Item>
-            );
-          })}
-        </antd.Menu>
+      <antd.Layout.Sider
+        width={200}
+        className="site-layout-background"
+        style={{ backgroundColor: '#60A5FA' }}
+      >
+        {players.map((player) => (
+          <MenuPlayer
+            handCard={player.handCard}
+            splitCard={player.splitCard}
+            name={player.name}
+            state={player.state}
+            bet={player.bet}
+          />
+        ))}
       </antd.Layout.Sider>
     );
   };
@@ -111,9 +178,9 @@ const GamePage = () => {
         }}
       >
         <div className="container h-100">
-          <Cards type={'dealer'} cards={appCtx.dealerCards} />
-          <ControlPanel />
-          <Cards type={'player'} cards={appCtx.playerCards} />
+          <Cards cards={dealerCards} />
+          <ControlPanel playerCards={playerCards} bank={bank} bet={bet} />
+          <Cards cards={playerCards} splitCard={splitCard} />
           <BankPanel />
         </div>
       </antd.Layout.Content>
@@ -129,6 +196,26 @@ const GamePage = () => {
       </antd.Layout>
     </antd.Layout>
   );
+};
+
+interface swalConfig {
+  title: string;
+  text: string;
+}
+
+const Swal = (dealNum: number, handCard: Card[]): swalConfig => {
+  const playerNum = cardnumCalc(handCard);
+  if (playerNum > 21) {
+    return { title: 'Dealer Win', text: `Player Bust: ${playerNum}` };
+  } else if (dealNum > 21) {
+    return { title: 'Player Win', text: `Dealer Bust: ${dealNum}` };
+  } else if (dealNum > playerNum) {
+    return { title: 'Dealer Win', text: `Dealer: ${dealNum},Player: ${playerNum}` };
+  } else if (playerNum > dealNum) {
+    return { title: 'Player Win', text: `Dealer: ${dealNum},Player: ${playerNum}` };
+  } else {
+    return { title: 'Push', text: `Dealer: ${dealNum},Player: ${playerNum}` };
+  }
 };
 
 export { GamePage };

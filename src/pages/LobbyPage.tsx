@@ -13,7 +13,7 @@ interface Room {
   id: string;
   name: string;
   playerNum: number;
-  // ownerName: string;
+  ownerName: string;
   hasPassword: boolean;
 }
 
@@ -22,7 +22,6 @@ const LobbyPage = () => {
   const [dataSource, setDataSource] = React.useState<Room[]>([]); //coulmns data
 
   const [currentPage, setCurrentPage] = React.useState<number>(1);
-  const [lobby, setLobby] = React.useState<Colyseus.Room<unknown>>();
   const [total, setTotal] = React.useState<number>(0);
   const pageSize = 10;
 
@@ -32,7 +31,9 @@ const LobbyPage = () => {
       return {
         id: room.metadata.roomId,
         name: room.metadata.roomName,
-        playerNum: room.metadata.playerNum,
+        ownerName: room.metadata.ownerName,
+        cardDecks: room.metadata.cardDecks,
+        playerNum: room.maxClients,
         hasPassword: room.metadata.hasPassword,
       };
     });
@@ -44,7 +45,7 @@ const LobbyPage = () => {
       await appCtx.redirect();
 
       const lobby = await client.joinOrCreate('lobby');
-      console.log(lobby);
+      // console.log(lobby);
 
       lobby.onMessage('rooms', (rooms) => {
         console.log('rooms', rooms);
@@ -83,19 +84,24 @@ const LobbyPage = () => {
 
   const columns: ColumnsType<Room> = [
     {
-      title: 'Room-ID',
-      align: 'center',
-      dataIndex: 'id',
-    },
-    {
       title: 'Room-Name',
       align: 'center',
       dataIndex: 'name',
     },
     {
+      title: 'Owner-Name',
+      align: 'center',
+      dataIndex: 'ownerName',
+    },
+    {
       title: 'Player-Number',
       align: 'center',
       dataIndex: 'playerNum',
+    },
+    {
+      title: 'Decks',
+      align: 'center',
+      dataIndex: 'cardDecks',
     },
     {
       title: '',
@@ -158,16 +164,7 @@ const LobbyPage = () => {
             Create Room
           </antd.Button>
         </div>
-        <antd.Table
-          dataSource={dataSource}
-          columns={columns}
-          pagination={{
-            current: currentPage,
-            pageSize,
-            total,
-            onChange: (page) => setCurrentPage(page),
-          }}
-        />
+        <antd.Table dataSource={dataSource} columns={columns} pagination={false} />
       </antd.Layout.Content>
     </antd.Layout>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import * as antd from 'antd';
 
-import { AppContext, game } from '../AppContext';
+import { AppContext } from '../AppContext';
 import { Notification } from '../components/Notification';
 import { client } from '../class/colyseus';
 
@@ -29,7 +29,7 @@ export const CreateUser = () => {
 
   return (
     <antd.Form onFinish={onFinish} initialValues={{ playerNum: 2, roomName: 'aaa' }}>
-      <h5 className="font-weight-bold mb-4">Add room</h5>
+      <h5 className="font-weight-bold mb-4">Create room</h5>
 
       <antd.Form.Item
         name="userName"

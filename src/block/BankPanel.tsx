@@ -1,20 +1,24 @@
 import React from 'react';
 import * as antd from 'antd';
-import { AppContext, game } from '../AppContext';
+import { AppContext } from '../AppContext';
 
 const BankPanel = () => {
   const appCtx = React.useContext(AppContext);
   const [bet, setBet] = React.useState<number>(100);
 
   const deal = () => {
-    if (bet > appCtx.bank) return;
-    const { changed } = game.GameMachine.send('Deal', { bet });
-    if (changed) appCtx.sendMachineState('Deal', { bet });
+    if (!appCtx.room) return;
+
+    appCtx.room.send('Deal', { bet });
+    // if (bet > appCtx.bank) return;
   };
 
   const gameStart = () => {
-    const { changed, context } = game.GameMachine.send('Start');
-    if (changed) appCtx.sendMachineState('Start', { shuffle: context.shuffle });
+    if (!appCtx.room) {
+      window.location.href = '/#/lobby';
+      return;
+    }
+    appCtx.room.send('Start');
   };
 
   return (
@@ -35,7 +39,7 @@ const BankPanel = () => {
             Deal
           </antd.Button>
           <antd.InputNumber
-            max={appCtx.bank}
+            // max={appCtx.bank}
             min={0}
             defaultValue={100}
             onChange={(value) => setBet(value)}

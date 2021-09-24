@@ -1,13 +1,11 @@
 import React from 'react';
 import { AppContext } from '../AppContext';
 import * as antd from 'antd';
-
+import axios from 'axios';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
+
 import { auth } from '../firebase/firebase';
 import { CreateUser } from '../modals/CreateUser';
-// import { client } from '../class/colyseus';
-
-import axios from 'axios';
 
 const provider = new GoogleAuthProvider();
 
@@ -15,13 +13,12 @@ const LaunchPage = () => {
   const appCtx = React.useContext(AppContext);
 
   const init = async () => {
-    // await appCtx.connectWS();
     await appCtx.redirect();
   };
 
   React.useEffect(() => {
     init();
-  }, []);
+  });
   return <></>;
 };
 
@@ -108,7 +105,7 @@ const LoginPage = () => {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-4 m-4 text-center font-weight-bold" style={{ fontSize: '20px' }}>
-            PEMAN 後台管理系統
+            Black Jack IO
           </div>
         </div>
 

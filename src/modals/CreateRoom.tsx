@@ -1,7 +1,7 @@
 import React from 'react';
 import * as antd from 'antd';
 
-import { AppContext, game } from '../AppContext';
+import { AppContext } from '../AppContext';
 import { Notification } from '../components/Notification';
 import { client } from '../class/colyseus';
 
@@ -14,15 +14,15 @@ export const CareteRoom = () => {
     try {
       appCtx.setModal(null);
 
-      const room = await client?.create('my_room', {
+      const room = await client.create('my_room', {
         token: appCtx.token,
         roomName: values.roomName,
-        playerNum: values.playerNum,
+        maxClients: values.maxClients,
+        cardDecks: values.cardDecks,
         password: values.password,
       });
 
       if (room) {
-        console.log(room);
         appCtx.setRoom(room);
         Notification.add('success', 'Add room success');
         window.location.href = '/#/game';
@@ -36,8 +36,8 @@ export const CareteRoom = () => {
   };
 
   return (
-    <antd.Form onFinish={onFinish} initialValues={{ playerNum: 2, roomName: 'aaa' }}>
-      <h5 className="font-weight-bold mb-4">Add room</h5>
+    <antd.Form onFinish={onFinish} initialValues={{ maxClients: 1, cardDecks: 1, roomName: 'aaa' }}>
+      <h5 className="font-weight-bold mb-4">Create room</h5>
 
       <antd.Form.Item
         name="roomName"
@@ -51,12 +51,22 @@ export const CareteRoom = () => {
         <antd.Input.Password placeholder="Empty no need" />
       </antd.Form.Item>
 
-      <antd.Form.Item name="playerNum" label="Player Number">
+      <antd.Form.Item name="maxClients" label="Player Number">
         <antd.Select>
+          <antd.Select.Option value={1}>1</antd.Select.Option>
           <antd.Select.Option value={2}>2</antd.Select.Option>
           <antd.Select.Option value={3}>3</antd.Select.Option>
           <antd.Select.Option value={4}>4</antd.Select.Option>
           <antd.Select.Option value={5}>5</antd.Select.Option>
+        </antd.Select>
+      </antd.Form.Item>
+
+      <antd.Form.Item name="cardDecks" label="Decks Number">
+        <antd.Select>
+          <antd.Select.Option value={1}>1</antd.Select.Option>
+          <antd.Select.Option value={2}>2</antd.Select.Option>
+          <antd.Select.Option value={4}>4</antd.Select.Option>
+          <antd.Select.Option value={6}>6</antd.Select.Option>
         </antd.Select>
       </antd.Form.Item>
 

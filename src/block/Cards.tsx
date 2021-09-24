@@ -6,15 +6,16 @@ import { cardnumCalc } from '../utils/cardnum';
 
 interface CardsProps {
   cards: Card[];
-  type: string;
+  splitCard?: Card[];
 }
 
 const cardBack: Card = { name: 'card_back.jpg', number: '0', suit: '' };
 
-const Cards = ({ cards, type }: CardsProps) => {
+const Cards = ({ cards, splitCard }: CardsProps) => {
   const appCtx = React.useContext(AppContext);
   const [number, setNumber] = React.useState<number>(0);
   const [showCards, setShowCards] = React.useState<Card[]>([]);
+  const [showSplitCard, setShowSplitCard] = React.useState<Card[]>([]);
 
   React.useEffect(() => {
     const num = cardnumCalc(cards);
@@ -24,8 +25,9 @@ const Cards = ({ cards, type }: CardsProps) => {
       setShowCards(cards.concat([cardBack]));
     } else {
       setShowCards(cards);
+      if (splitCard) setShowSplitCard(splitCard);
     }
-  }, [cards, cards.length]);
+  }, [cards, cards.length, splitCard, splitCard?.length]);
 
   return (
     <div className="row" style={{ minHeight: '270px' }}>
@@ -52,9 +54,8 @@ const Cards = ({ cards, type }: CardsProps) => {
         >
           {number}
         </div>
-        {type === 'player' &&
-          appCtx.splitCard.length > 0 &&
-          appCtx.splitCard.map((card) => (
+        {showSplitCard.length > 0 &&
+          showSplitCard.map((card) => (
             <div className="ms-4">
               <antd.Image height={'100px'} src={`/assets/cards/${card.name}`} preview={false} />
             </div>

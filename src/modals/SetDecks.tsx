@@ -1,7 +1,7 @@
 import React from 'react';
 import * as antd from 'antd';
 
-import { AppContext, game } from '../AppContext';
+import { AppContext } from '../AppContext';
 import { Notification } from '../components/Notification';
 
 export const SetDecks = () => {
@@ -11,14 +11,14 @@ export const SetDecks = () => {
 
   const onFinish = async (values: any) => {
     appCtx.setModal(null);
-    game.setDecks(values.decks);
-    appCtx.setDecks(values.decks);
+    // game.setDecks(values.decks);
+    // appCtx.setDecks(values.decks);
 
     Notification.add('success', 'Apply on next turn');
   };
 
   return (
-    <antd.Form onFinish={onFinish} initialValues={{ decks: appCtx.decks }}>
+    <antd.Form onFinish={onFinish} initialValues={{}}>
       <h5 className="font-weight-bold mb-4">Set Decks</h5>
 
       <antd.Form.Item name="decks" label="Deck Number">

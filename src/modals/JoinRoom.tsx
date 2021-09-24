@@ -1,7 +1,7 @@
 import React from 'react';
 import * as antd from 'antd';
 
-import { AppContext, game } from '../AppContext';
+import { AppContext } from '../AppContext';
 import { Notification } from '../components/Notification';
 import { client } from '../class/colyseus';
 

@@ -16,8 +16,8 @@ interface AppContextProps {
   lobbyPage: string;
   setModal: (modal: React.ReactNode | null, width?: number) => void;
 
-  account: string;
-  setAccount: (value: string) => void;
+  name: string;
+  setName: (value: string) => void;
 
   token: string;
   setToken: React.Dispatch<React.SetStateAction<string>>;
@@ -53,20 +53,20 @@ interface AppContextProps {
     }
   >;
 
-  dealerCards: Card[];
-  playerCards: Card[];
-  deckCardNumber: number;
-  bank: number;
-  roundbet: number;
+  // dealerCards: Card[];
+  // playerCards: Card[];
+  // deckCardNumber: number;
+  // bank: number;
+  // roundbet: number;
 
-  splitCard: Card[];
-  setSplitCard: React.Dispatch<React.SetStateAction<Card[]>>;
+  // splitCard: Card[];
+  // setSplitCard: React.Dispatch<React.SetStateAction<Card[]>>;
 
   backgroundImage: string;
   setBackgroundImage: React.Dispatch<React.SetStateAction<string>>;
 
-  decks: number;
-  setDecks: React.Dispatch<React.SetStateAction<number>>;
+  // decks: number;
+  // setDecks: React.Dispatch<React.SetStateAction<number>>;
 
   room: Colyseus.Room<any> | undefined;
   setRoom: React.Dispatch<React.SetStateAction<Colyseus.Room<any> | undefined>>;
@@ -78,7 +78,7 @@ interface AppProviderProps {
   children: React.ReactNode;
 }
 
-export let game = new Game();
+// export let game = new Game();
 
 const AppProvider = ({ children }: AppProviderProps) => {
   const [loginPage] = React.useState('/#/login');
@@ -86,33 +86,32 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const [modal, setModal] = React.useState<any>(null);
   const [modalWidth, setModalWidth] = React.useState<number>(416);
 
-  const [account, setAccount] = React.useState<string>('');
+  const [name, setName] = React.useState<string>('');
   const [token, setToken] = React.useState<string>('');
 
-  const [roundbet, setRoundbet] = React.useState<number>(0);
-  const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
-  const [decks, setDecks] = React.useState<number>(1);
-  const [bank, setBank] = React.useState<number>(1000);
+  // const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
+  // const [decks, setDecks] = React.useState<number>(1);
   const [backgroundImage, setBackgroundImage] = React.useState<string>('bg1');
 
-  const [splitCard, setSplitCard] = React.useState<Card[]>([]);
-
-  const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
-  const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
+  // const [splitCard, setSplitCard] = React.useState<Card[]>([]);
+  // const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
+  // const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
+  // const [bank, setBank] = React.useState<number>(1000);
+  // const [roundbet, setRoundbet] = React.useState<number>(0);
 
   const [room, setRoom] = React.useState<Colyseus.Room>();
 
-  const setInfo = () => {
-    const { bank, decks, dealerCards, playerCards, deckCardNumber, splitCard } = game.info();
-    setBank(bank);
-    setDecks(decks);
-    setDealerCards(dealerCards);
-    setPlayerCards(playerCards);
-    setDeckCardNumber(deckCardNumber);
-    setSplitCard(splitCard);
+  // const setInfo = () => {
+  //   // const { bank, decks, dealerCards, playerCards, deckCardNumber, splitCard } = game.info();
+  //   setBank(bank);
+  //   setDecks(decks);
+  //   setDealerCards(dealerCards);
+  //   setPlayerCards(playerCards);
+  //   setDeckCardNumber(deckCardNumber);
+  //   setSplitCard(splitCard);
 
-    return { dealerCards, playerCards };
-  };
+  //   return { dealerCards, playerCards };
+  // };
 
   const machine = createMachine(
     {
@@ -123,9 +122,8 @@ const AppProvider = ({ children }: AppProviderProps) => {
         beforeStart: {
           on: { Start: 'start' },
           onEntry: (state, context) => {
-            game = new Game();
-            setInfo();
-            setDeckCardNumber(decks * 52);
+            // setInfo();
+            // setDeckCardNumber(decks * 52);
           },
         },
         start: {
@@ -134,13 +132,13 @@ const AppProvider = ({ children }: AppProviderProps) => {
             Deal: 'deal',
           },
           onEntry: (context: any, event: any) => {
-            setInfo();
+            // setInfo();
             if (event.shuffle) {
               antd.notification.success({
                 message: 'Shuffle Decks',
                 duration: 1,
               });
-              setDeckCardNumber(decks * 52);
+              // setDeckCardNumber(decks * 52);
             }
           },
         },
@@ -154,14 +152,14 @@ const AppProvider = ({ children }: AppProviderProps) => {
           },
           onEntry: (context: any, event: any) => {
             const { bet } = event;
-            setRoundbet(bet);
-            const { playerCards } = setInfo();
-            if (playerCards.length === 2 && cardnumCalc(playerCards) === 21) {
-              antd.notification.success({
-                message: 'Black Jack!!',
-                duration: 1.5,
-              });
-            }
+            // setRoundbet(bet);
+            // const { playerCards } = setInfo();
+            // if (playerCards.length === 2 && cardnumCalc(playerCards) === 21) {
+            //   antd.notification.success({
+            //     message: 'Black Jack!!',
+            //     duration: 1.5,
+            //   });
+            // }
           },
         },
         split: {
@@ -171,7 +169,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             End: { target: 'hit', actions: ['hit'] },
           },
           onEntry: (context: any, event: any) => {
-            setInfo();
+            // setInfo();
           },
         },
         hit: {
@@ -187,7 +185,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             NextRound: { target: 'start' },
           },
           onEntry: (context: any, event: any) => {
-            setInfo();
+            // setInfo();
             // setStoreCard([]);
           },
         },
@@ -196,11 +194,11 @@ const AppProvider = ({ children }: AppProviderProps) => {
     {
       actions: {
         hit: async (context, event) => {
-          setInfo();
+          // setInfo();
         },
         restart: () => {
-          setDealerCards([]);
-          setPlayerCards([]);
+          // setDealerCards([]);
+          // setPlayerCards([]);
         },
       },
     },
@@ -239,7 +237,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
       }
 
       data = response.data;
-    } catch (error: any) {
+    } catch (error) {
       Notification.add('error', error.message);
     }
 
@@ -262,7 +260,19 @@ const AppProvider = ({ children }: AppProviderProps) => {
           reject(false);
           return;
         }
+
+        const response = await axios.post(
+          '/api/account/login',
+          {},
+          {
+            headers: {
+              Authorization: token,
+            },
+          },
+        );
+
         setToken(token);
+        setName(response.data.name);
 
         window.location.href = lobbyPage;
         resolve(true);
@@ -282,8 +292,8 @@ const AppProvider = ({ children }: AppProviderProps) => {
           setModal(modal);
         },
 
-        account,
-        setAccount,
+        name,
+        setName,
 
         token,
         setToken,
@@ -296,20 +306,20 @@ const AppProvider = ({ children }: AppProviderProps) => {
         machineState,
         sendMachineState,
 
-        dealerCards,
-        playerCards,
-        deckCardNumber,
-        bank,
-        roundbet,
+        // dealerCards,
+        // playerCards,
+        // deckCardNumber,
+        // bank,
+        // roundbet,
 
-        splitCard,
-        setSplitCard,
+        // splitCard,
+        // setSplitCard,
 
         backgroundImage,
         setBackgroundImage,
 
-        decks,
-        setDecks,
+        // decks,
+        // setDecks,
 
         room,
         setRoom,
