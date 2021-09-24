@@ -10,7 +10,6 @@ export interface player {
   name: string;
   state: string;
   bet: string;
-  // bank:string;
 }
 
 export const MenuPlayer = ({ name, handCard, state, bet, splitCard }: player) => {

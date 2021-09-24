@@ -2,7 +2,6 @@ import React from 'react';
 import { AppContext } from '../AppContext';
 import * as antd from 'antd';
 import { SuitSpadeFill } from 'react-bootstrap-icons';
-import { client } from '../class/colyseus';
 
 import { Notification } from '../components/Notification';
 import { Cards } from '../block/Cards';

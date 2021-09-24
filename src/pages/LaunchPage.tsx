@@ -36,7 +36,9 @@ const LoginPage = () => {
       appCtx.setToken(token);
 
       const response = await axios.post(
-        '/api/account/login',
+        process.env.REACT_APP_BASE_URL
+          ? `${process.env.REACT_APP_BASE_URL}/api/account/login`
+          : '/api/account/login',
         {},
         {
           headers: {
@@ -46,7 +48,6 @@ const LoginPage = () => {
       );
 
       if (response.data.errorCode === 3000) {
-        // const data = await appCtx.fetch('post', '/api/user');
         appCtx.setModal(<CreateUser />);
       } else {
         window.location.href = appCtx.lobbyPage;
@@ -74,26 +75,35 @@ const LoginPage = () => {
   const LoginForm = () => {
     return (
       <antd.Form
-        initialValues={{ account: 'skynocover2@gmail.com', password: '123456' }}
+        // initialValues={{ account: 'skynocover2@gmail.com', password: '123456' }}
         onFinish={(values) => emailLogin(values.account, values.password)}
       >
-        <antd.Form.Item name="account" rules={[{ required: true, message: '帳號不可以空白!' }]}>
-          <antd.Input prefix={<i className="fa fa-user" />} placeholder="請輸入帳號" />
+        <antd.Form.Item
+          name="account"
+          rules={[{ required: true, message: 'Account could not be empty!' }]}
+        >
+          <antd.Input prefix={<i className="fa fa-user" />} placeholder="Please Input Account" />
         </antd.Form.Item>
 
-        <antd.Form.Item name="password" rules={[{ required: true, message: '密碼不可以空白!' }]}>
-          <antd.Input.Password prefix={<i className="fa fa-lock" />} placeholder="請輸入密碼" />
+        <antd.Form.Item
+          name="password"
+          rules={[{ required: true, message: 'Password could not be empty!' }]}
+        >
+          <antd.Input.Password
+            prefix={<i className="fa fa-lock" />}
+            placeholder="Please Input Password"
+          />
         </antd.Form.Item>
 
         <antd.Form.Item className="text-center">
           <antd.Button type="primary" shape="round" htmlType="submit">
-            登入
+            Login
           </antd.Button>
         </antd.Form.Item>
 
         <antd.Form.Item className="text-center">
           <antd.Button type="primary" shape="round" onClick={googleLogin}>
-            使用google登入
+            Login with Google
           </antd.Button>
         </antd.Form.Item>
       </antd.Form>

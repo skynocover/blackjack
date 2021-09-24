@@ -13,13 +13,6 @@ function App() {
         <ReactRouterDOM.Route path="/login" component={LoginPage} />
         <ReactRouterDOM.Route path="/lobby" component={LobbyPage} />
         <ReactRouterDOM.Route path="/game" component={GamePage} />
-
-        {/* {menus.map((item) => (
-          <ReactRouterDOM.Route key={item.key} path={item.key}>
-            <MainPage menus={menus} title={item.title} icon={item.icon} content={item.component} />
-          </ReactRouterDOM.Route>
-        ))} */}
-
         <ReactRouterDOM.Route path="*" component={NotFoundPage} />
       </ReactRouterDOM.Switch>
     </ReactRouterDOM.HashRouter>

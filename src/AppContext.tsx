@@ -78,8 +78,6 @@ interface AppProviderProps {
   children: React.ReactNode;
 }
 
-// export let game = new Game();
-
 const AppProvider = ({ children }: AppProviderProps) => {
   const [loginPage] = React.useState('/#/login');
   const [lobbyPage] = React.useState('/#/lobby');
@@ -89,29 +87,8 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const [name, setName] = React.useState<string>('');
   const [token, setToken] = React.useState<string>('');
 
-  // const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
-  // const [decks, setDecks] = React.useState<number>(1);
   const [backgroundImage, setBackgroundImage] = React.useState<string>('bg1');
-
-  // const [splitCard, setSplitCard] = React.useState<Card[]>([]);
-  // const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
-  // const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
-  // const [bank, setBank] = React.useState<number>(1000);
-  // const [roundbet, setRoundbet] = React.useState<number>(0);
-
   const [room, setRoom] = React.useState<Colyseus.Room>();
-
-  // const setInfo = () => {
-  //   // const { bank, decks, dealerCards, playerCards, deckCardNumber, splitCard } = game.info();
-  //   setBank(bank);
-  //   setDecks(decks);
-  //   setDealerCards(dealerCards);
-  //   setPlayerCards(playerCards);
-  //   setDeckCardNumber(deckCardNumber);
-  //   setSplitCard(splitCard);
-
-  //   return { dealerCards, playerCards };
-  // };
 
   const machine = createMachine(
     {
@@ -121,10 +98,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
       states: {
         beforeStart: {
           on: { Start: 'start' },
-          onEntry: (state, context) => {
-            // setInfo();
-            // setDeckCardNumber(decks * 52);
-          },
+          onEntry: (state, context) => {},
         },
         start: {
           on: {
@@ -132,13 +106,11 @@ const AppProvider = ({ children }: AppProviderProps) => {
             Deal: 'deal',
           },
           onEntry: (context: any, event: any) => {
-            // setInfo();
             if (event.shuffle) {
               antd.notification.success({
                 message: 'Shuffle Decks',
                 duration: 1,
               });
-              // setDeckCardNumber(decks * 52);
             }
           },
         },
@@ -150,17 +122,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             End: { target: 'end', actions: ['end'] },
             Split: { target: 'split', actions: ['split'] },
           },
-          onEntry: (context: any, event: any) => {
-            const { bet } = event;
-            // setRoundbet(bet);
-            // const { playerCards } = setInfo();
-            // if (playerCards.length === 2 && cardnumCalc(playerCards) === 21) {
-            //   antd.notification.success({
-            //     message: 'Black Jack!!',
-            //     duration: 1.5,
-            //   });
-            // }
-          },
+          onEntry: (context: any, event: any) => {},
         },
         split: {
           on: {
@@ -168,9 +130,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
             Hit: { actions: ['hit'] },
             End: { target: 'hit', actions: ['hit'] },
           },
-          onEntry: (context: any, event: any) => {
-            // setInfo();
-          },
+          onEntry: (context: any, event: any) => {},
         },
         hit: {
           on: {
@@ -184,22 +144,14 @@ const AppProvider = ({ children }: AppProviderProps) => {
             ReStart: 'beforeStart',
             NextRound: { target: 'start' },
           },
-          onEntry: (context: any, event: any) => {
-            // setInfo();
-            // setStoreCard([]);
-          },
+          onEntry: (context: any, event: any) => {},
         },
       },
     },
     {
       actions: {
-        hit: async (context, event) => {
-          // setInfo();
-        },
-        restart: () => {
-          // setDealerCards([]);
-          // setPlayerCards([]);
-        },
+        hit: async (context, event) => {},
+        restart: () => {},
       },
     },
   );
@@ -222,6 +174,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
       const response = await axios({
         method,
         url,
+        baseURL: process.env.REACT_APP_BASE_URL,
         data: param,
         headers: { Authorization: token },
       });
@@ -262,7 +215,9 @@ const AppProvider = ({ children }: AppProviderProps) => {
         }
 
         const response = await axios.post(
-          '/api/account/login',
+          process.env.REACT_APP_BASE_URL
+            ? `${process.env.REACT_APP_BASE_URL}/api/account/login`
+            : '/api/account/login',
           {},
           {
             headers: {
