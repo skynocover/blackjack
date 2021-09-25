@@ -2,22 +2,22 @@ import React from 'react';
 import * as antd from 'antd';
 import { AppContext } from '../AppContext';
 
-const BankPanel = () => {
+interface BankPanelProps {
+  bank: number;
+  minBet: number;
+}
+
+const BankPanel = ({ bank, minBet }: BankPanelProps) => {
   const appCtx = React.useContext(AppContext);
-  const [bet, setBet] = React.useState<number>(100);
+  const [bet, setBet] = React.useState<number>();
 
   const deal = () => {
     if (!appCtx.room) return;
-
-    appCtx.room.send('Deal', { bet });
-    // if (bet > appCtx.bank) return;
+    appCtx.room.send('Deal', { bet: bet ? bet : minBet });
   };
 
   const gameStart = () => {
-    if (!appCtx.room) {
-      window.location.href = '/#/lobby';
-      return;
-    }
+    if (!appCtx.room) return;
     appCtx.room.send('Start');
   };
 
@@ -39,9 +39,9 @@ const BankPanel = () => {
             Deal
           </antd.Button>
           <antd.InputNumber
-            // max={appCtx.bank}
-            min={0}
-            defaultValue={100}
+            max={bank}
+            min={minBet}
+            defaultValue={minBet}
             onChange={(value) => setBet(value)}
           />
         </div>

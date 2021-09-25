@@ -9,7 +9,6 @@ import { ControlPanel } from '../block/ControlPanel';
 import { BankPanel } from '../block/BankPanel';
 import { Card } from '../class/Card';
 import { MenuPlayer, player } from '../block/MenuPlayer';
-import { Player } from '../class/Player';
 import swal from 'sweetalert';
 import { cardnumCalc } from '../utils/cardnum';
 
@@ -20,54 +19,45 @@ const GamePage = () => {
   const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
   const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
   const [splitCard, setSplitCard] = React.useState<Card[]>([]);
-  const [bank, setBank] = React.useState<number>(1000);
+  const [bank, setBank] = React.useState<number>(0);
   const [bet, setBet] = React.useState<number>(0);
+  const [minBet, setMinBet] = React.useState<number>(0);
   const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
 
   React.useEffect(() => {
-    if (!appCtx.room) {
+    if (!appCtx.room || !appCtx.room.state) {
       window.location.href = '/#/lobby';
       return;
     }
 
     appCtx.room.onStateChange((state) => {
       // console.log(state);
-      const { players, dealerHandCard, deck, cardDecks } = state;
+      const { players, dealerHandCard, deck } = state;
       setPlayers([...players]);
       setDealerCards(dealerHandCard);
       const p = players.filter((item: any) => item.name === appCtx.name);
-      // console.log('state: ', p[0].state);
-      if (p[0].handCard.length === 2 && cardnumCalc(p[0].handCard) === 21) {
+      if (
+        p[0].handCard.length === 2 &&
+        cardnumCalc(p[0].handCard) === 21 &&
+        p[0].splitCard.length === 0
+      ) {
         Notification.add('success', 'Black Jack');
       }
       setPlayerCards(p[0].handCard);
       setSplitCard(p[0].splitCard);
-      console.log(JSON.stringify(p[0].splitCard));
       setDeckCardNumber(deck.cards.length);
     });
 
-    appCtx.room.send('info');
-    appCtx.room.onMessage('info', (data) => {
-      setPlayers(data.players);
-    });
-
-    appCtx.room.onMessage('playerJoin', (data) => {
-      setPlayers(data.players);
-    });
-    appCtx.room.onMessage('playerLeave', (data) => {
-      setPlayers(data.players);
-    });
-
-    appCtx.room.onMessage('AllDeal', (data) => {});
+    appCtx.room.onMessage('AllDeal', (data) => appCtx.sendMachineState('AllDeal'));
 
     appCtx.room.onMessage('Bank', (data) => setBank(data));
     appCtx.room.onMessage('Bet', (data) => setBet(data));
+    appCtx.room.onMessage('minBet', (data) => setMinBet(data));
 
     appCtx.room.onMessage('Start', (data) => {
       const { shuffle } = data;
-      if (shuffle) {
-        Notification.add('success', 'shuffle decks');
-      }
+      if (shuffle) Notification.add('success', 'shuffle decks');
+
       setDealerCards([]);
       setPlayerCards([]);
       setSplitCard([]);
@@ -80,11 +70,12 @@ const GamePage = () => {
     });
 
     appCtx.room.onMessage('End', async (data) => {
+      appCtx.sendMachineState('End');
       const { players, dealerHandCard } = data;
       setDealerCards(dealerHandCard);
 
       const dealNum = cardnumCalc(dealerHandCard);
-      const p = players.filter((item: any) => item.name === appCtx.name);
+      const p = players.filter((p: any) => p.name === appCtx.name);
       const { title, text } = Swal(dealNum, p[0].handCard);
       await swal(title, text);
       if (p[0].splitCard.length !== 0) {
@@ -180,7 +171,7 @@ const GamePage = () => {
           <Cards cards={dealerCards} />
           <ControlPanel playerCards={playerCards} bank={bank} bet={bet} />
           <Cards cards={playerCards} splitCard={splitCard} />
-          <BankPanel />
+          <BankPanel bank={bank} minBet={minBet} />
         </div>
       </antd.Layout.Content>
     );

@@ -3,8 +3,6 @@ import { AppContext } from '../AppContext';
 import * as antd from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { CareteRoom } from '../modals/CreateRoom';
-import { joinLobby } from '../class/Lobby';
-import * as Colyseus from 'colyseus.js';
 import { client } from '../class/colyseus';
 import { JoinRoom } from '../modals/JoinRoom';
 import { Notification } from '../components/Notification';
@@ -21,22 +19,33 @@ const LobbyPage = () => {
   const appCtx = React.useContext(AppContext);
   const [dataSource, setDataSource] = React.useState<Room[]>([]); //coulmns data
 
-  const [currentPage, setCurrentPage] = React.useState<number>(1);
-  const [total, setTotal] = React.useState<number>(0);
-  const pageSize = 10;
+  // const [currentPage, setCurrentPage] = React.useState<number>(1);
+  // const [total, setTotal] = React.useState<number>(0);
+  // const pageSize = 10;
 
   const getRoomList = async () => {
     const rooms = await client.getAvailableRooms('my_room');
-    const roomsData = rooms.map((room) => {
-      return {
-        id: room.metadata.roomId,
-        name: room.metadata.roomName,
-        ownerName: room.metadata.ownerName,
-        cardDecks: room.metadata.cardDecks,
-        playerNum: room.maxClients,
-        hasPassword: room.metadata.hasPassword,
-      };
+
+    rooms.map((room) => {
+      console.log(room.clients);
     });
+
+    const roomsData = rooms
+      .filter((room) => room.metadata)
+      .map((room) => {
+        return {
+          id: room.metadata.roomId,
+          name: room.metadata.roomName,
+          clients: room.clients,
+          ownerName: room.metadata.ownerName,
+          cardDecks: room.metadata.cardDecks,
+          playerNum: room.maxClients,
+          hasPassword: room.metadata.hasPassword,
+          initBank: room.metadata.initBank,
+          minBet: room.metadata.minBet,
+        };
+      });
+
     setDataSource(roomsData);
   };
 
@@ -45,7 +54,6 @@ const LobbyPage = () => {
       await appCtx.redirect();
 
       const lobby = await client.joinOrCreate('lobby');
-      // console.log(lobby);
 
       lobby.onMessage('rooms', (rooms) => {
         console.log('rooms', rooms);
@@ -65,6 +73,7 @@ const LobbyPage = () => {
     }
   };
   React.useEffect(() => {
+    appCtx.sendMachineState('ReStart');
     init();
   }, []);
 
@@ -83,6 +92,11 @@ const LobbyPage = () => {
   };
 
   const columns: ColumnsType<Room> = [
+    // {
+    //   title: 'Room-ID',
+    //   align: 'center',
+    //   dataIndex: 'id',
+    // },
     {
       title: 'Room-Name',
       align: 'center',
@@ -94,14 +108,24 @@ const LobbyPage = () => {
       dataIndex: 'ownerName',
     },
     {
-      title: 'Player-Number',
+      title: 'Players',
       align: 'center',
-      dataIndex: 'playerNum',
+      render: (item) => `${item.clients}/${item.playerNum}`,
     },
     {
       title: 'Decks',
       align: 'center',
       dataIndex: 'cardDecks',
+    },
+    {
+      title: 'Init Bank',
+      align: 'center',
+      dataIndex: 'initBank',
+    },
+    {
+      title: 'Min Bet',
+      align: 'center',
+      dataIndex: 'minBet',
     },
     {
       title: '',

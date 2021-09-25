@@ -15,67 +15,67 @@ const ControlPanel = ({ playerCards, bet, bank }: ControlPanelProps) => {
   const Hit = () => {
     if (!appCtx.room) return;
     appCtx.room.send('Hit');
-    // const { changed, context } = game.GameMachine.send('Hit');
-    // if (!changed) return;
-
-    // appCtx.sendMachineState('Hit');
-
-    // if (context.num > 21) {
-    // const { context } = game.GameMachine.send('End');
-    // appCtx.sendMachineState('End');
-    // if (!context.split) end(context);
-    // }
+    appCtx.sendMachineState('Hit');
   };
 
   const Stand = () => {
     if (!appCtx.room) return;
     appCtx.room.send('Stand');
-    // const { changed, context } = game.GameMachine.send('End');
-    // if (!changed) return;
-    // appCtx.sendMachineState('End');
-    // if (!context.split) end(context);
+    appCtx.sendMachineState('Stand');
   };
 
   const Double = () => {
     if (!appCtx.room) return;
     appCtx.room.send('Double');
-    // const { changed, context } = game.GameMachine.send('Double');
-    // if (!changed) return;
-    // appCtx.sendMachineState('Double');
-    // end(context);
+    appCtx.sendMachineState('Stand');
   };
 
   const Split = () => {
     if (!appCtx.room) return;
     appCtx.room.send('Split');
-    // const { changed, context } = game.GameMachine.send('Split');
-    // if (!changed) return;
-    // appCtx.setSplitCard(context.card);
-    // appCtx.sendMachineState('Split', { card: context.card });
+    appCtx.sendMachineState('Split');
   };
 
   return (
     <div className="row justify-content-around ">
       <div className="col d-flex justify-content-center">
-        <antd.Button type="primary" onClick={Hit}>
+        <antd.Button
+          type="primary"
+          onClick={Hit}
+          disabled={
+            appCtx.machineState.value !== 'deal' &&
+            appCtx.machineState.value !== 'hit' &&
+            appCtx.machineState.value !== 'split'
+          }
+        >
           Hit
         </antd.Button>
       </div>
       <div className="col d-flex justify-content-center">
-        {playerCards.length === 2 && bank >= bet && (
-          <antd.Button type="primary" onClick={Double}>
-            Double
-          </antd.Button>
-        )}
+        <antd.Button
+          type="primary"
+          onClick={Double}
+          disabled={playerCards.length !== 2 || bank < bet || appCtx.machineState.value !== 'deal'}
+        >
+          Double
+        </antd.Button>
       </div>
       <div className="col d-flex justify-content-center">
         <div className="mx-2">
-          <antd.Button type="primary" onClick={Stand}>
+          <antd.Button
+            type="primary"
+            onClick={Stand}
+            disabled={
+              appCtx.machineState.value !== 'deal' &&
+              appCtx.machineState.value !== 'hit' &&
+              appCtx.machineState.value !== 'split'
+            }
+          >
             Stand
           </antd.Button>
         </div>
-        {playerCards.length === 2 &&
-          // appCtx.machineState.value === 'deal' &&
+        {appCtx.machineState.value === 'deal' &&
+          playerCards.length === 2 &&
           bank >= bet &&
           cardnumCalc([playerCards[0]]) === cardnumCalc([playerCards[1]]) && (
             <div>

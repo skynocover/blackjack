@@ -1,15 +1,11 @@
 import React from 'react';
 import * as antd from 'antd';
 import { createMachine, EventData, State } from 'xstate';
-import { Game } from './class/Game';
-import { Card } from './class/Card';
 import { Notification } from './components/Notification';
 import { useMachine } from '@xstate/react';
-import { cardnumCalc } from './utils/cardnum';
 import * as Colyseus from 'colyseus.js';
 import { auth } from './firebase/firebase';
 import axios from 'axios';
-import { joinLobby } from './class/Lobby';
 
 interface AppContextProps {
   loginPage: string;
@@ -53,20 +49,8 @@ interface AppContextProps {
     }
   >;
 
-  // dealerCards: Card[];
-  // playerCards: Card[];
-  // deckCardNumber: number;
-  // bank: number;
-  // roundbet: number;
-
-  // splitCard: Card[];
-  // setSplitCard: React.Dispatch<React.SetStateAction<Card[]>>;
-
   backgroundImage: string;
   setBackgroundImage: React.Dispatch<React.SetStateAction<string>>;
-
-  // decks: number;
-  // setDecks: React.Dispatch<React.SetStateAction<number>>;
 
   room: Colyseus.Room<any> | undefined;
   setRoom: React.Dispatch<React.SetStateAction<Colyseus.Room<any> | undefined>>;
@@ -90,76 +74,58 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const [backgroundImage, setBackgroundImage] = React.useState<string>('bg1');
   const [room, setRoom] = React.useState<Colyseus.Room>();
 
-  const machine = createMachine(
-    {
-      id: 'game',
-      initial: 'beforeStart',
-      context: {},
-      states: {
-        beforeStart: {
-          on: { Start: 'start' },
-          onEntry: (state, context) => {},
+  const machine = createMachine({
+    id: 'game',
+    initial: 'beforeStart',
+    context: {},
+    states: {
+      beforeStart: {
+        on: { Start: 'start' },
+        onEntry: (state, context) => {},
+      },
+      start: {
+        on: {
+          ReStart: 'beforeStart',
+          AllDeal: 'deal',
         },
-        start: {
-          on: {
-            ReStart: 'beforeStart',
-            Deal: 'deal',
-          },
-          onEntry: (context: any, event: any) => {
-            if (event.shuffle) {
-              antd.notification.success({
-                message: 'Shuffle Decks',
-                duration: 1,
-              });
-            }
-          },
+        onEntry: (context, event) => {},
+      },
+      deal: {
+        on: {
+          ReStart: 'beforeStart',
+          Hit: 'hit',
+          Split: 'split',
+          Stand: 'stand',
         },
-        deal: {
-          on: {
-            ReStart: 'beforeStart',
-            Hit: { target: 'hit', actions: ['hit'] },
-            Double: { target: 'end', actions: ['double', 'end'] },
-            End: { target: 'end', actions: ['end'] },
-            Split: { target: 'split', actions: ['split'] },
-          },
-          onEntry: (context: any, event: any) => {},
+      },
+      hit: {
+        on: {
+          ReStart: 'beforeStart',
+          Stand: 'stand',
+          Start: 'start',
         },
-        split: {
-          on: {
-            ReStart: 'beforeStart',
-            Hit: { actions: ['hit'] },
-            End: { target: 'hit', actions: ['hit'] },
-          },
-          onEntry: (context: any, event: any) => {},
+      },
+      split: {
+        on: {
+          ReStart: 'beforeStart',
+          Stand: 'hit',
+          // Hit:'hit',
+          Start: 'start',
         },
-        hit: {
-          on: {
-            ReStart: 'beforeStart',
-            Hit: { actions: ['hit'] },
-            End: 'end',
-          },
-        },
-        end: {
-          on: {
-            ReStart: 'beforeStart',
-            NextRound: { target: 'start' },
-          },
-          onEntry: (context: any, event: any) => {},
+      },
+      stand: {
+        on: {
+          ReStart: 'beforeStart',
+          Start: 'start',
         },
       },
     },
-    {
-      actions: {
-        hit: async (context, event) => {},
-        restart: () => {},
-      },
-    },
-  );
+  });
 
   const [machineState, sendMachineState] = useMachine(machine);
 
   React.useEffect(() => {
-    console.log('front-end: ', machineState.value);
+    console.log('machineState: ', machineState.value);
   }, [machineState]);
   /////////////////////////////////////////////////////
 

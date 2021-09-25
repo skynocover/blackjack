@@ -1,6 +1,4 @@
-import React from 'react';
 import * as antd from 'antd';
-import { AppContext } from '../AppContext';
 import { Card } from '../class/Card';
 import { cardnumCalc } from '../utils/cardnum';
 
@@ -13,19 +11,6 @@ export interface player {
 }
 
 export const MenuPlayer = ({ name, handCard, state, bet, splitCard }: player) => {
-  const appCtx = React.useContext(AppContext);
-  const [number, setNumber] = React.useState<number>(0);
-  const [showCards, setShowCards] = React.useState<Card[]>([]);
-  const [showSplitCard, setShowSplitCard] = React.useState<Card[]>([]);
-
-  React.useEffect(() => {
-    const num = cardnumCalc(handCard);
-    setNumber(num);
-
-    setShowCards(handCard);
-    setShowSplitCard(splitCard);
-  }, [handCard, handCard.length, splitCard, splitCard.length]);
-
   const Tag = () => {
     switch (state) {
       case 'bust':
@@ -63,19 +48,19 @@ export const MenuPlayer = ({ name, handCard, state, bet, splitCard }: player) =>
               backgroundColor: 'gray',
             }}
           >
-            {number}
+            {cardnumCalc(handCard)}
           </div>
         </div>
       </div>
       <div className="d-flex flex-row">
-        {showCards.map((card) => (
+        {handCard.map((card) => (
           <div className="d-flex align-items-center">
             <antd.Image src={`/assets/cards/${card.name}`} preview={false} height={'100px'} />
           </div>
         ))}
       </div>
       <div className="d-flex flex-row">
-        {showSplitCard.map((card) => (
+        {splitCard.map((card) => (
           <div className="d-flex align-items-center">
             <antd.Image src={`/assets/cards/${card.name}`} preview={false} height={'100px'} />
           </div>

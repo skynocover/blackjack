@@ -1,6 +1,6 @@
 import React from 'react';
 import * as antd from 'antd';
-import { AppContext } from '../AppContext';
+// import { AppContext } from '../AppContext';
 import { Card } from '../class/Card';
 import { cardnumCalc } from '../utils/cardnum';
 
@@ -12,15 +12,11 @@ interface CardsProps {
 const cardBack: Card = { name: 'card_back.jpg', number: '0', suit: '' };
 
 const Cards = ({ cards, splitCard }: CardsProps) => {
-  const appCtx = React.useContext(AppContext);
-  const [number, setNumber] = React.useState<number>(0);
+  // const appCtx = React.useContext(AppContext);
   const [showCards, setShowCards] = React.useState<Card[]>([]);
   const [showSplitCard, setShowSplitCard] = React.useState<Card[]>([]);
 
   React.useEffect(() => {
-    const num = cardnumCalc(cards);
-    setNumber(num);
-
     if (cards.length === 1) {
       setShowCards(cards.concat([cardBack]));
     } else {
@@ -52,7 +48,7 @@ const Cards = ({ cards, splitCard }: CardsProps) => {
             alignItems: 'center',
           }}
         >
-          {number}
+          {cardnumCalc(cards)}
         </div>
         {showSplitCard.length > 0 &&
           showSplitCard.map((card) => (

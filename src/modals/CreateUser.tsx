@@ -3,7 +3,6 @@ import * as antd from 'antd';
 
 import { AppContext } from '../AppContext';
 import { Notification } from '../components/Notification';
-import { client } from '../class/colyseus';
 
 export const CreateUser = () => {
   const appCtx = React.useContext(AppContext);

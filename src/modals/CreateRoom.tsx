@@ -14,15 +14,28 @@ export const CareteRoom = () => {
     try {
       appCtx.setModal(null);
 
+      if (!Number.isInteger(values.initBank)) {
+        Notification.add('error', 'Initial bank should be a Integer');
+        return;
+      }
+
+      if (!Number.isInteger(values.minBet)) {
+        Notification.add('error', 'Initial bank should be a Integer');
+        return;
+      }
+
       const room = await client.create('my_room', {
         token: appCtx.token,
         roomName: values.roomName,
         maxClients: values.maxClients,
         cardDecks: values.cardDecks,
         password: values.password,
+        initBank: values.initBank,
+        minBet: values.minBet,
       });
 
       if (room) {
+        console.log(room);
         appCtx.setRoom(room);
         Notification.add('success', 'Add room success');
         window.location.href = '/#/game';
@@ -36,7 +49,10 @@ export const CareteRoom = () => {
   };
 
   return (
-    <antd.Form onFinish={onFinish} initialValues={{ maxClients: 1, cardDecks: 1, roomName: 'aaa' }}>
+    <antd.Form
+      onFinish={onFinish}
+      initialValues={{ maxClients: 1, cardDecks: 1, initBank: 1000, minBet: 100 }}
+    >
       <h5 className="font-weight-bold mb-4">Create room</h5>
 
       <antd.Form.Item
@@ -49,6 +65,14 @@ export const CareteRoom = () => {
 
       <antd.Form.Item name="password" label="Room password">
         <antd.Input.Password placeholder="Empty no need" />
+      </antd.Form.Item>
+
+      <antd.Form.Item name="initBank" label="Initial Bank">
+        <antd.InputNumber min={1000} max={9999999} />
+      </antd.Form.Item>
+
+      <antd.Form.Item name="minBet" label="minimum bet">
+        <antd.InputNumber min={100} max={9999999} />
       </antd.Form.Item>
 
       <antd.Form.Item name="maxClients" label="Player Number">
