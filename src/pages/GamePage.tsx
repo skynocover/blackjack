@@ -16,7 +16,7 @@ import { Player } from '../class/Player';
 const GamePage = () => {
   const appCtx = React.useContext(AppContext);
   const [players, setPlayers] = React.useState<player[]>([]);
-  const [pendingPlayers, setPendingPlayers] = React.useState<player[]>([]);
+  // const [pendingPlayers, setPendingPlayers] = React.useState<player[]>([]);
 
   const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
   const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
@@ -34,8 +34,8 @@ const GamePage = () => {
 
     appCtx.room.onStateChange((state) => {
       const { players, pendingPlayers, dealerHandCard, deck } = state;
-      setPlayers([...players]);
-      setPendingPlayers([...pendingPlayers]);
+      setPlayers([...players, ...pendingPlayers]);
+      // setPendingPlayers([...pendingPlayers]);
       setDealerCards(dealerHandCard);
       const p = players.filter((item: any) => item.name === appCtx.name);
       if (p[0]) {
@@ -154,27 +154,15 @@ const GamePage = () => {
         className="site-layout-background"
         style={{ backgroundColor: '#60A5FA' }}
       >
-        {players
-          .map((player) => (
-            <MenuPlayer
-              handCard={player.handCard}
-              splitCard={player.splitCard}
-              name={player.name}
-              state={player.state}
-              bet={player.bet}
-            />
-          ))
-          .concat(
-            pendingPlayers.map((player) => (
-              <MenuPlayer
-                handCard={player.handCard}
-                splitCard={player.splitCard}
-                name={player.name}
-                state={'pending'}
-                bet={player.bet}
-              />
-            )),
-          )}
+        {players.map((player) => (
+          <MenuPlayer
+            handCard={player.handCard}
+            splitCard={player.splitCard}
+            name={player.name}
+            state={player.state}
+            bet={player.bet}
+          />
+        ))}
       </antd.Layout.Sider>
     );
   };
