@@ -13,6 +13,8 @@ export interface player {
 export const MenuPlayer = ({ name, handCard, state, bet, splitCard }: player) => {
   const Tag = () => {
     switch (state) {
+      case 'pending':
+        return <antd.Tag color="#B45309">{state}</antd.Tag>;
       case 'bust':
         return <antd.Tag color="red">{state}</antd.Tag>;
       case 'start':

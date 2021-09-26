@@ -11,10 +11,12 @@ import { Card } from '../class/Card';
 import { MenuPlayer, player } from '../block/MenuPlayer';
 import swal from 'sweetalert';
 import { cardnumCalc } from '../utils/cardnum';
+import { Player } from '../class/Player';
 
 const GamePage = () => {
   const appCtx = React.useContext(AppContext);
   const [players, setPlayers] = React.useState<player[]>([]);
+  const [pendingPlayers, setPendingPlayers] = React.useState<player[]>([]);
 
   const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
   const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
@@ -31,20 +33,23 @@ const GamePage = () => {
     }
 
     appCtx.room.onStateChange((state) => {
-      // console.log(state);
-      const { players, dealerHandCard, deck } = state;
+      const { players, pendingPlayers, dealerHandCard, deck } = state;
       setPlayers([...players]);
+      setPendingPlayers([...pendingPlayers]);
       setDealerCards(dealerHandCard);
       const p = players.filter((item: any) => item.name === appCtx.name);
-      if (
-        p[0].handCard.length === 2 &&
-        cardnumCalc(p[0].handCard) === 21 &&
-        p[0].splitCard.length === 0
-      ) {
-        Notification.add('success', 'Black Jack');
+      if (p[0]) {
+        if (
+          p[0].handCard.length === 2 &&
+          cardnumCalc(p[0].handCard) === 21 &&
+          p[0].splitCard.length === 0
+        ) {
+          Notification.add('success', 'Black Jack');
+        }
+        setPlayerCards(p[0].handCard);
+        setSplitCard(p[0].splitCard);
       }
-      setPlayerCards(p[0].handCard);
-      setSplitCard(p[0].splitCard);
+
       setDeckCardNumber(deck.cards.length);
     });
 
@@ -53,6 +58,9 @@ const GamePage = () => {
     appCtx.room.onMessage('Bank', (data) => setBank(data));
     appCtx.room.onMessage('Bet', (data) => setBet(data));
     appCtx.room.onMessage('minBet', (data) => setMinBet(data));
+    appCtx.room.onMessage('playerJoin', (data) =>
+      Notification.add('success', `${data} join this room`),
+    );
 
     appCtx.room.onMessage('Start', (data) => {
       const { shuffle } = data;
@@ -76,13 +84,15 @@ const GamePage = () => {
 
       const dealNum = cardnumCalc(dealerHandCard);
       const p = players.filter((p: any) => p.name === appCtx.name);
-      const { title, text } = Swal(dealNum, p[0].handCard);
-      await swal(title, text);
-      if (p[0].splitCard.length !== 0) {
-        const { title, text } = Swal(dealNum, p[0].splitCard);
+      if (p[0]) {
+        const { title, text } = Swal(dealNum, p[0].handCard);
         await swal(title, text);
+        if (p[0].splitCard.length !== 0) {
+          const { title, text } = Swal(dealNum, p[0].splitCard);
+          await swal(title, text);
+        }
+        appCtx.room?.send('CheckOut');
       }
-      appCtx.room?.send('CheckOut');
     });
   }, []);
 
@@ -144,15 +154,27 @@ const GamePage = () => {
         className="site-layout-background"
         style={{ backgroundColor: '#60A5FA' }}
       >
-        {players.map((player) => (
-          <MenuPlayer
-            handCard={player.handCard}
-            splitCard={player.splitCard}
-            name={player.name}
-            state={player.state}
-            bet={player.bet}
-          />
-        ))}
+        {players
+          .map((player) => (
+            <MenuPlayer
+              handCard={player.handCard}
+              splitCard={player.splitCard}
+              name={player.name}
+              state={player.state}
+              bet={player.bet}
+            />
+          ))
+          .concat(
+            pendingPlayers.map((player) => (
+              <MenuPlayer
+                handCard={player.handCard}
+                splitCard={player.splitCard}
+                name={player.name}
+                state={'pending'}
+                bet={player.bet}
+              />
+            )),
+          )}
       </antd.Layout.Sider>
     );
   };
