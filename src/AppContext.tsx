@@ -6,6 +6,7 @@ import { useMachine } from '@xstate/react';
 import * as Colyseus from 'colyseus.js';
 import { auth } from './firebase/firebase';
 import axios from 'axios';
+import swal from 'sweetalert';
 
 interface AppContextProps {
   loginPage: string;
@@ -172,31 +173,67 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const redirect = async (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
       auth.onAuthStateChanged(async (user) => {
-        console.log('user: ', user);
-        const token = await user?.getIdToken();
-        if (!token) {
-          window.location.href = loginPage;
-          reject(false);
-          return;
-        }
+        try {
+          const token = await user?.getIdToken();
+          if (!token) {
+            window.location.href = loginPage;
+            reject(false);
+            return;
+          }
 
-        const response = await axios.post(
-          process.env.REACT_APP_BASE_URL
-            ? `${process.env.REACT_APP_BASE_URL}/api/account/login`
-            : '/api/account/login',
-          {},
-          {
-            headers: {
-              Authorization: token,
+          const response = await axios.post(
+            process.env.REACT_APP_BASE_URL
+              ? `${process.env.REACT_APP_BASE_URL}/api/account/login`
+              : '/api/account/login',
+            {},
+            {
+              headers: {
+                Authorization: token,
+              },
             },
-          },
-        );
+          );
 
-        setToken(token);
-        setName(response.data.name);
+          if (response.data.errorCode === 3000) {
+            let set = false;
+            while (!set) {
+              const name = await swal('Please set username', {
+                content: { element: 'input' },
+                closeOnClickOutside: false,
+                closeOnEsc: false,
+              });
+              if (!name) continue;
 
-        window.location.href = lobbyPage;
-        resolve(true);
+              const response = await axios.post(
+                process.env.REACT_APP_BASE_URL
+                  ? `${process.env.REACT_APP_BASE_URL}/api/user`
+                  : '/api/user',
+                { name },
+                {
+                  headers: {
+                    Authorization: token,
+                  },
+                },
+              );
+
+              if (response.data.errorCode === 3004) {
+                await swal(response.data.errorMessage);
+              } else {
+                Notification.add('success', 'Set username success');
+                set = true;
+              }
+            }
+          } else {
+            window.location.href = lobbyPage;
+          }
+
+          setToken(token);
+          setName(response.data.name);
+
+          window.location.href = lobbyPage;
+          resolve(true);
+        } catch (error) {
+          reject(false);
+        }
       });
     });
   };
@@ -227,20 +264,8 @@ const AppProvider = ({ children }: AppProviderProps) => {
         machineState,
         sendMachineState,
 
-        // dealerCards,
-        // playerCards,
-        // deckCardNumber,
-        // bank,
-        // roundbet,
-
-        // splitCard,
-        // setSplitCard,
-
         backgroundImage,
         setBackgroundImage,
-
-        // decks,
-        // setDecks,
 
         room,
         setRoom,

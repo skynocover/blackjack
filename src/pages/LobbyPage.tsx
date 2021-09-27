@@ -11,7 +11,6 @@ interface Room {
   id: string;
   name: string;
   playerNum: number;
-  ownerName: string;
   hasPassword: boolean;
 }
 
@@ -24,29 +23,32 @@ const LobbyPage = () => {
   // const pageSize = 10;
 
   const getRoomList = async () => {
-    const rooms = await client.getAvailableRooms('my_room');
+    try {
+      const rooms = await client.getAvailableRooms('my_room');
 
-    rooms.map((room) => {
-      console.log(room.clients);
-    });
-
-    const roomsData = rooms
-      .filter((room) => room.metadata)
-      .map((room) => {
-        return {
-          id: room.metadata.roomId,
-          name: room.metadata.roomName,
-          clients: room.clients,
-          ownerName: room.metadata.ownerName,
-          cardDecks: room.metadata.cardDecks,
-          playerNum: room.maxClients,
-          hasPassword: room.metadata.hasPassword,
-          initBank: room.metadata.initBank,
-          minBet: room.metadata.minBet,
-        };
+      rooms.map((room) => {
+        console.log(room.clients);
       });
 
-    setDataSource(roomsData);
+      const roomsData = rooms
+        .filter((room) => room.metadata)
+        .map((room) => {
+          return {
+            id: room.metadata.roomId,
+            name: room.metadata.roomName,
+            clients: room.clients,
+            cardDecks: room.metadata.cardDecks,
+            playerNum: room.maxClients,
+            hasPassword: room.metadata.hasPassword,
+            initBank: room.metadata.initBank,
+            minBet: room.metadata.minBet,
+          };
+        });
+
+      setDataSource(roomsData);
+    } catch (error) {
+      Notification.add('error', error.message);
+    }
   };
 
   const init = async () => {
@@ -78,16 +80,20 @@ const LobbyPage = () => {
   }, []);
 
   const joinRoom = async (roomId: string) => {
-    const room = await client.joinById(roomId, {
-      token: appCtx.token,
-    });
-    if (room) {
-      console.log(room);
-      appCtx.setRoom(room);
-      Notification.add('success', 'Join Room Success');
-      window.location.href = '/#/game';
-    } else {
-      Notification.add('error', 'Join room fail');
+    try {
+      const room = await client.joinById(roomId, {
+        token: appCtx.token,
+      });
+      if (room) {
+        console.log(room);
+        appCtx.setRoom(room);
+        Notification.add('success', 'Join Room Success');
+        window.location.href = '/#/game';
+      } else {
+        Notification.add('error', 'Join room fail');
+      }
+    } catch (error) {
+      Notification.add('error', error.message);
     }
   };
 
@@ -101,11 +107,6 @@ const LobbyPage = () => {
       title: 'Room-Name',
       align: 'center',
       dataIndex: 'name',
-    },
-    {
-      title: 'Owner-Name',
-      align: 'center',
-      dataIndex: 'ownerName',
     },
     {
       title: 'Players',

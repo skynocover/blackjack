@@ -51,7 +51,7 @@ export const CareteRoom = () => {
   return (
     <antd.Form
       onFinish={onFinish}
-      initialValues={{ maxClients: 1, cardDecks: 1, initBank: 1000, minBet: 100 }}
+      initialValues={{ maxClients: 1, cardDecks: 4, initBank: 1000, minBet: 100 }}
     >
       <h5 className="font-weight-bold mb-4">Create room</h5>
 
@@ -60,11 +60,11 @@ export const CareteRoom = () => {
         label="Room name"
         rules={[{ required: true, message: 'Room Name Could Not Be Empty' }]}
       >
-        <antd.Input placeholder="Please Input Room Name" />
+        <antd.Input placeholder="Please input room name" />
       </antd.Form.Item>
 
       <antd.Form.Item name="password" label="Room password">
-        <antd.Input.Password placeholder="Empty no need" />
+        <antd.Input.Password placeholder="Empty if no need" />
       </antd.Form.Item>
 
       <antd.Form.Item name="initBank" label="Initial Bank">
@@ -75,7 +75,7 @@ export const CareteRoom = () => {
         <antd.InputNumber min={100} max={9999999} />
       </antd.Form.Item>
 
-      <antd.Form.Item name="maxClients" label="Player Number">
+      <antd.Form.Item name="maxClients" label="Players">
         <antd.Select>
           <antd.Select.Option value={1}>1</antd.Select.Option>
           <antd.Select.Option value={2}>2</antd.Select.Option>
@@ -85,12 +85,11 @@ export const CareteRoom = () => {
         </antd.Select>
       </antd.Form.Item>
 
-      <antd.Form.Item name="cardDecks" label="Decks Number">
+      <antd.Form.Item name="cardDecks" label="Decks">
         <antd.Select>
-          <antd.Select.Option value={1}>1</antd.Select.Option>
-          <antd.Select.Option value={2}>2</antd.Select.Option>
           <antd.Select.Option value={4}>4</antd.Select.Option>
           <antd.Select.Option value={6}>6</antd.Select.Option>
+          <antd.Select.Option value={8}>8</antd.Select.Option>
         </antd.Select>
       </antd.Form.Item>
 

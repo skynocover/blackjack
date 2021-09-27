@@ -3,9 +3,8 @@ import { AppContext } from '../AppContext';
 import * as antd from 'antd';
 import axios from 'axios';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-
+import swal from 'sweetalert';
 import { auth } from '../firebase/firebase';
-import { CreateUser } from '../modals/CreateUser';
 
 const provider = new GoogleAuthProvider();
 
@@ -34,41 +33,20 @@ const LoginPage = () => {
       const token = await user.getIdToken();
       if (!token) throw new Error('Invalid token');
       appCtx.setToken(token);
-
-      const response = await axios.post(
-        process.env.REACT_APP_BASE_URL
-          ? `${process.env.REACT_APP_BASE_URL}/api/account/login`
-          : '/api/account/login',
-        {},
-        {
-          headers: {
-            Authorization: token,
-          },
-        },
-      );
-
-      if (response.data.errorCode === 3000) {
-        appCtx.setModal(<CreateUser />);
-      } else {
-        window.location.href = appCtx.lobbyPage;
-      }
-    } catch (error: any) {
-      alert(`error: ${error.message}`);
+    } catch (error) {
+      await swal(error.message);
     }
   };
 
   const emailLogin = async (email: string, password: string) => {
     try {
-      console.log(email, password);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('user');
-
       const token = await userCredential.user.getIdToken();
       appCtx.setToken(token);
 
       window.location.href = appCtx.lobbyPage;
-    } catch (error: any) {
-      alert(`error: ${error.message}`);
+    } catch (error) {
+      await swal(error.message);
     }
   };
 
@@ -80,9 +58,9 @@ const LoginPage = () => {
       >
         <antd.Form.Item
           name="account"
-          rules={[{ required: true, message: 'Account could not be empty!' }]}
+          rules={[{ required: true, message: 'E-mail could not be empty!' }]}
         >
-          <antd.Input prefix={<i className="fa fa-user" />} placeholder="Please Input Account" />
+          <antd.Input prefix={<i className="fa fa-user" />} placeholder="Please Input E-mail" />
         </antd.Form.Item>
 
         <antd.Form.Item
@@ -98,6 +76,18 @@ const LoginPage = () => {
         <antd.Form.Item className="text-center">
           <antd.Button type="primary" shape="round" htmlType="submit">
             Login
+          </antd.Button>
+        </antd.Form.Item>
+
+        <antd.Form.Item className="text-center">
+          <antd.Button
+            type="primary"
+            shape="round"
+            onClick={() => {
+              window.location.href = '/#/regist';
+            }}
+          >
+            Regist
           </antd.Button>
         </antd.Form.Item>
 
