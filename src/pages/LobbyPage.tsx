@@ -2,6 +2,7 @@ import React from 'react';
 import { AppContext } from '../AppContext';
 import * as antd from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+
 import { CareteRoom } from '../modals/CreateRoom';
 import { client } from '../class/colyseus';
 import { JoinRoom } from '../modals/JoinRoom';
@@ -12,6 +13,7 @@ interface Room {
   name: string;
   playerNum: number;
   hasPassword: boolean;
+  doubleAt11: boolean;
 }
 
 const LobbyPage = () => {
@@ -42,6 +44,7 @@ const LobbyPage = () => {
             hasPassword: room.metadata.hasPassword,
             initBank: room.metadata.initBank,
             minBet: room.metadata.minBet,
+            doubleAt11: room.metadata.doubleAt11,
           };
         });
 
@@ -97,6 +100,11 @@ const LobbyPage = () => {
     }
   };
 
+  const History = () => {
+    appCtx.setModal(null);
+    window.location.href = '/#/history';
+  };
+
   const columns: ColumnsType<Room> = [
     // {
     //   title: 'Room-ID',
@@ -127,6 +135,11 @@ const LobbyPage = () => {
       title: 'Min Bet',
       align: 'center',
       dataIndex: 'minBet',
+    },
+    {
+      title: 'Double only at 11',
+      align: 'center',
+      render: (item) => <antd.Switch checked={item.doubleAt11} />,
     },
     {
       title: '',
@@ -168,6 +181,9 @@ const LobbyPage = () => {
             placement="bottom"
             content={
               <div className="d-flex flex-column">
+                <antd.Button type="link" danger onClick={History}>
+                  Play History
+                </antd.Button>
                 <antd.Button type="link" danger onClick={appCtx.logout}>
                   Logout
                 </antd.Button>

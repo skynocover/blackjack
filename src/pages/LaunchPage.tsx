@@ -1,7 +1,6 @@
 import React from 'react';
 import { AppContext } from '../AppContext';
 import * as antd from 'antd';
-import axios from 'axios';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import swal from 'sweetalert';
 import { auth } from '../firebase/firebase';
@@ -26,13 +25,11 @@ const LoginPage = () => {
 
   const googleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log('user: ', user);
-
+      const { user } = await signInWithPopup(auth, provider);
       const token = await user.getIdToken();
-      if (!token) throw new Error('Invalid token');
       appCtx.setToken(token);
+
+      window.location.href = appCtx.lobbyPage;
     } catch (error) {
       await swal(error.message);
     }
@@ -40,8 +37,8 @@ const LoginPage = () => {
 
   const emailLogin = async (email: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const token = await user.getIdToken();
       appCtx.setToken(token);
 
       window.location.href = appCtx.lobbyPage;
@@ -53,7 +50,7 @@ const LoginPage = () => {
   const LoginForm = () => {
     return (
       <antd.Form
-        // initialValues={{ account: 'skynocover2@gmail.com', password: '123456' }}
+        // initialValues={{ account: '', password: '' }}
         onFinish={(values) => emailLogin(values.account, values.password)}
       >
         <antd.Form.Item

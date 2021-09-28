@@ -32,6 +32,9 @@ export const CareteRoom = () => {
         password: values.password,
         initBank: values.initBank,
         minBet: values.minBet,
+        doubleAt11: values.doubleAt11,
+        H17: values.H17,
+        blackjackPay: values.blackjackPay,
       });
 
       if (room) {
@@ -45,13 +48,22 @@ export const CareteRoom = () => {
     } catch (error: any) {
       console.log(error.message);
       Notification.add('error', error.message);
+      window.location.href = '/';
     }
   };
 
   return (
     <antd.Form
       onFinish={onFinish}
-      initialValues={{ maxClients: 1, cardDecks: 4, initBank: 1000, minBet: 100 }}
+      initialValues={{
+        maxClients: 5,
+        cardDecks: 4,
+        initBank: 1000,
+        minBet: 100,
+        doubleAt11: false,
+        blackjackPay: 1.5,
+        H17: false,
+      }}
     >
       <h5 className="font-weight-bold mb-4">Create room</h5>
 
@@ -67,11 +79,11 @@ export const CareteRoom = () => {
         <antd.Input.Password placeholder="Empty if no need" />
       </antd.Form.Item>
 
-      <antd.Form.Item name="initBank" label="Initial Bank">
+      <antd.Form.Item name="initBank" label="Initial Bank (1000~9999999)">
         <antd.InputNumber min={1000} max={9999999} />
       </antd.Form.Item>
 
-      <antd.Form.Item name="minBet" label="minimum bet">
+      <antd.Form.Item name="minBet" label="Minimum bet (100~9999999)">
         <antd.InputNumber min={100} max={9999999} />
       </antd.Form.Item>
 
@@ -91,6 +103,21 @@ export const CareteRoom = () => {
           <antd.Select.Option value={6}>6</antd.Select.Option>
           <antd.Select.Option value={8}>8</antd.Select.Option>
         </antd.Select>
+      </antd.Form.Item>
+
+      <antd.Form.Item name="blackjackPay" label="Blackjack pay">
+        <antd.Select>
+          <antd.Select.Option value={1.5}>3 to 2</antd.Select.Option>
+          <antd.Select.Option value={1.2}>6 to 5</antd.Select.Option>
+        </antd.Select>
+      </antd.Form.Item>
+
+      <antd.Form.Item name="doubleAt11" label="Double only at 11">
+        <antd.Switch />
+      </antd.Form.Item>
+
+      <antd.Form.Item name="H17" label="Dealer hits on soft 17">
+        <antd.Switch />
       </antd.Form.Item>
 
       <antd.Form.Item className="text-center">

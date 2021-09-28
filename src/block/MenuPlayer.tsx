@@ -21,6 +21,8 @@ export const MenuPlayer = ({ name, handCard, state, bet, splitCard }: player) =>
         return <antd.Tag color="#10B981">{state}</antd.Tag>;
       case 'hit':
         return <antd.Tag color="#34D399">{state}</antd.Tag>;
+      case 'out':
+        return <antd.Tag color="#9CA3AF">{state}</antd.Tag>;
       default:
         return <antd.Tag color="#2563EB">{state}</antd.Tag>;
     }

@@ -4,12 +4,14 @@ import { AppContext } from '../AppContext';
 import { cardnumCalc } from '../utils/cardnum';
 import { Card } from '../class/Card';
 interface ControlPanelProps {
+  doubleAt11: boolean;
+  out: boolean;
   playerCards: Card[];
   bet: number;
   bank: number;
 }
 
-const ControlPanel = ({ playerCards, bet, bank }: ControlPanelProps) => {
+const ControlPanel = ({ doubleAt11, out, playerCards, bet, bank }: ControlPanelProps) => {
   const appCtx = React.useContext(AppContext);
 
   const Hit = () => {
@@ -43,9 +45,10 @@ const ControlPanel = ({ playerCards, bet, bank }: ControlPanelProps) => {
           type="primary"
           onClick={Hit}
           disabled={
-            appCtx.machineState.value !== 'deal' &&
-            appCtx.machineState.value !== 'hit' &&
-            appCtx.machineState.value !== 'split'
+            out ||
+            (appCtx.machineState.value !== 'deal' &&
+              appCtx.machineState.value !== 'hit' &&
+              appCtx.machineState.value !== 'split')
           }
         >
           Hit
@@ -55,7 +58,16 @@ const ControlPanel = ({ playerCards, bet, bank }: ControlPanelProps) => {
         <antd.Button
           type="primary"
           onClick={Double}
-          disabled={playerCards.length !== 2 || bank < bet || appCtx.machineState.value !== 'deal'}
+          disabled={
+            doubleAt11
+              ? !(
+                  playerCards.length === 2 &&
+                  bank >= bet &&
+                  appCtx.machineState.value === 'deal' &&
+                  cardnumCalc(playerCards) === 11
+                )
+              : playerCards.length !== 2 || bank < bet || appCtx.machineState.value !== 'deal'
+          }
         >
           Double
         </antd.Button>
@@ -66,9 +78,10 @@ const ControlPanel = ({ playerCards, bet, bank }: ControlPanelProps) => {
             type="primary"
             onClick={Stand}
             disabled={
-              appCtx.machineState.value !== 'deal' &&
-              appCtx.machineState.value !== 'hit' &&
-              appCtx.machineState.value !== 'split'
+              out ||
+              (appCtx.machineState.value !== 'deal' &&
+                appCtx.machineState.value !== 'hit' &&
+                appCtx.machineState.value !== 'split')
             }
           >
             Stand

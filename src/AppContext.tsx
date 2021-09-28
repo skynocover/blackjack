@@ -1,12 +1,13 @@
 import React from 'react';
 import * as antd from 'antd';
 import { createMachine, EventData, State } from 'xstate';
-import { Notification } from './components/Notification';
 import { useMachine } from '@xstate/react';
 import * as Colyseus from 'colyseus.js';
-import { auth } from './firebase/firebase';
 import axios from 'axios';
 import swal from 'sweetalert';
+
+import { auth } from './firebase/firebase';
+import { Notification } from './components/Notification';
 
 interface AppContextProps {
   loginPage: string;
@@ -37,6 +38,7 @@ interface AppContextProps {
       context: any;
     }
   >;
+
   sendMachineState: (
     event: any,
     payload?: EventData | undefined,
@@ -128,6 +130,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
   React.useEffect(() => {
     console.log('machineState: ', machineState.value);
   }, [machineState]);
+
   /////////////////////////////////////////////////////
 
   const fetch = async (
@@ -152,9 +155,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
         return null;
       }
 
-      if (response.data.errorCode !== 0) {
-        throw new Error(response.data.errorMessage);
-      }
+      if (response.data.errorCode !== 0) throw new Error(response.data.errorMessage);
 
       data = response.data;
     } catch (error) {
@@ -165,8 +166,8 @@ const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const logout = async () => {
+    setModal(null);
     await auth.signOut();
-
     window.location.href = loginPage;
   };
 
@@ -222,8 +223,6 @@ const AppProvider = ({ children }: AppProviderProps) => {
                 set = true;
               }
             }
-          } else {
-            window.location.href = lobbyPage;
           }
 
           setToken(token);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppContext } from '../AppContext';
 import * as antd from 'antd';
+import swal from 'sweetalert';
 import { SuitSpadeFill } from 'react-bootstrap-icons';
 
 import { Notification } from '../components/Notification';
@@ -9,22 +10,25 @@ import { ControlPanel } from '../block/ControlPanel';
 import { BankPanel } from '../block/BankPanel';
 import { Card } from '../class/Card';
 import { MenuPlayer, player } from '../block/MenuPlayer';
-import swal from 'sweetalert';
 import { cardnumCalc } from '../utils/cardnum';
-import { Player } from '../class/Player';
+import { Menu } from '../modals/Menu';
 
 const GamePage = () => {
   const appCtx = React.useContext(AppContext);
-  const [players, setPlayers] = React.useState<player[]>([]);
-  // const [pendingPlayers, setPendingPlayers] = React.useState<player[]>([]);
 
-  const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
-  const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
-  const [splitCard, setSplitCard] = React.useState<Card[]>([]);
   const [bank, setBank] = React.useState<number>(0);
   const [bet, setBet] = React.useState<number>(0);
   const [minBet, setMinBet] = React.useState<number>(0);
   const [deckCardNumber, setDeckCardNumber] = React.useState<number>(52);
+  const [out, setOut] = React.useState<boolean>(false);
+  const [doubleAt11, setDoubleAt11] = React.useState<boolean>(false);
+  const [H17, setH17] = React.useState<boolean>(false);
+  const [blackjackPay, setBlackjackPay] = React.useState<number>(0);
+
+  const [players, setPlayers] = React.useState<player[]>([]);
+  const [dealerCards, setDealerCards] = React.useState<Card[]>([]);
+  const [playerCards, setPlayerCards] = React.useState<Card[]>([]);
+  const [splitCard, setSplitCard] = React.useState<Card[]>([]);
 
   React.useEffect(() => {
     if (!appCtx.room || !appCtx.room.state) {
@@ -33,9 +37,8 @@ const GamePage = () => {
     }
 
     appCtx.room.onStateChange((state) => {
-      const { players, pendingPlayers, dealerHandCard, deck } = state;
-      setPlayers([...players, ...pendingPlayers]);
-      // setPendingPlayers([...pendingPlayers]);
+      const { players, pendingPlayers, outPlayers, dealerHandCard, deck } = state;
+      setPlayers([...players, ...pendingPlayers, ...outPlayers]);
       setDealerCards(dealerHandCard);
       const p = players.filter((item: any) => item.name === appCtx.name);
       if (p[0]) {
@@ -53,11 +56,25 @@ const GamePage = () => {
       setDeckCardNumber(deck.cards.length);
     });
 
-    appCtx.room.onMessage('AllDeal', (data) => appCtx.sendMachineState('AllDeal'));
+    appCtx.room.onMessage('AllDeal', () => appCtx.sendMachineState('AllDeal'));
 
     appCtx.room.onMessage('Bank', (data) => setBank(data));
     appCtx.room.onMessage('Bet', (data) => setBet(data));
-    appCtx.room.onMessage('minBet', (data) => setMinBet(data));
+
+    appCtx.room.onMessage('Info', (data) => {
+      const { Bank, minBet, doubleAt11, H17, blackjackPay } = data;
+      setBank(Bank);
+      setMinBet(minBet);
+      setDoubleAt11(doubleAt11);
+      setH17(H17);
+      setBlackjackPay(blackjackPay);
+    });
+
+    appCtx.room.onMessage('Out', () => {
+      setOut(true);
+      setBank(0);
+      swal('out', 'Bank has become zero');
+    });
     appCtx.room.onMessage('playerJoin', (data) =>
       Notification.add('success', `${data} join this room`),
     );
@@ -96,13 +113,6 @@ const GamePage = () => {
     });
   }, []);
 
-  const leaveRoom = async () => {
-    appCtx.room?.leave();
-    appCtx.setRoom(undefined);
-    appCtx.sendMachineState('ReStart');
-    window.location.href = '/#/lobby';
-  };
-
   const Header = () => {
     return (
       <antd.Layout.Header
@@ -112,36 +122,27 @@ const GamePage = () => {
         <div className="col-4">
           <SuitSpadeFill />
           <span className="mx-2 ">Black Jack</span>
-          <antd.Select
-            defaultValue={'bg1'}
-            onChange={(value) => appCtx.setBackgroundImage(`${value}`)}
-          >
-            <antd.Select.Option value={'bg1'}>backgroung1</antd.Select.Option>
-            <antd.Select.Option value={'bg2'}>backgroung2</antd.Select.Option>
-            <antd.Select.Option value={'bg3'}>backgroung3</antd.Select.Option>
-            <antd.Select.Option value={'bg4'}>backgroung4</antd.Select.Option>
-          </antd.Select>
         </div>
         <div className="col-4 d-flex justify-content-center">
           <span className="mx-2">Bank: {bank}</span>
           <span>Cards: {deckCardNumber}</span>
         </div>
         <div className="col-4 d-flex justify-content-end align-items-center">
-          <antd.Popover
-            placement="bottom"
-            content={
-              <div className="d-flex flex-column">
-                <antd.Button type="link" danger onClick={leaveRoom}>
-                  Leave Room
-                </antd.Button>
-                <antd.Button type="link" danger onClick={appCtx.logout}>
-                  Logout
-                </antd.Button>
-              </div>
-            }
+          <antd.Button
+            type="link"
+            onClick={() => {
+              appCtx.setModal(
+                <Menu
+                  minBet={minBet}
+                  doubleAt11={doubleAt11}
+                  H17={H17}
+                  blackjackPay={blackjackPay}
+                />,
+              );
+            }}
           >
-            <antd.Button type="link">Menu</antd.Button>
-          </antd.Popover>
+            Menu
+          </antd.Button>
         </div>
       </antd.Layout.Header>
     );
@@ -179,9 +180,15 @@ const GamePage = () => {
       >
         <div className="container h-100">
           <Cards cards={dealerCards} />
-          <ControlPanel playerCards={playerCards} bank={bank} bet={bet} />
+          <ControlPanel
+            doubleAt11={doubleAt11}
+            out={out}
+            playerCards={playerCards}
+            bank={bank}
+            bet={bet}
+          />
           <Cards cards={playerCards} splitCard={splitCard} />
-          <BankPanel bank={bank} minBet={minBet} />
+          <BankPanel out={out} bank={bank} minBet={minBet} />
         </div>
       </antd.Layout.Content>
     );

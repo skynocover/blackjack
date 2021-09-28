@@ -3,11 +3,12 @@ import * as antd from 'antd';
 import { AppContext } from '../AppContext';
 
 interface BankPanelProps {
+  out: boolean;
   bank: number;
   minBet: number;
 }
 
-const BankPanel = ({ bank, minBet }: BankPanelProps) => {
+const BankPanel = ({ out, bank, minBet }: BankPanelProps) => {
   const appCtx = React.useContext(AppContext);
   const [bet, setBet] = React.useState<number>();
 
@@ -33,7 +34,7 @@ const BankPanel = ({ bank, minBet }: BankPanelProps) => {
         <div className="col-6 d-flex justify-content-center">
           <antd.Button
             type="primary"
-            disabled={appCtx.machineState.value !== 'start'}
+            disabled={out || appCtx.machineState.value !== 'start'}
             onClick={deal}
           >
             Deal
@@ -42,6 +43,7 @@ const BankPanel = ({ bank, minBet }: BankPanelProps) => {
             max={bank}
             min={minBet}
             defaultValue={minBet}
+            value={bet}
             onChange={(value) => setBet(value)}
           />
         </div>
