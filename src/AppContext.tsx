@@ -228,7 +228,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
           setToken(token);
           setName(response.data.name);
 
-          window.location.href = lobbyPage;
+          // window.location.href = lobbyPage;
           resolve(true);
         } catch (error) {
           reject(false);

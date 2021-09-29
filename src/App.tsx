@@ -5,6 +5,7 @@ import { LaunchPage, LoginPage, NotFoundPage } from './pages/LaunchPage';
 import { GamePage } from './pages/GamePage';
 import { LobbyPage } from './pages/LobbyPage';
 import { RegistPage } from './pages/RegistPage';
+import { HistoryPage } from './pages/HistoryPage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <ReactRouterDOM.Route path="/lobby" component={LobbyPage} />
         <ReactRouterDOM.Route path="/game" component={GamePage} />
         <ReactRouterDOM.Route path="/regist" component={RegistPage} />
+        <ReactRouterDOM.Route path="/history" component={HistoryPage} />
         <ReactRouterDOM.Route path="*" component={NotFoundPage} />
       </ReactRouterDOM.Switch>
     </ReactRouterDOM.HashRouter>

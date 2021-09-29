@@ -11,7 +11,10 @@ const LaunchPage = () => {
   const appCtx = React.useContext(AppContext);
 
   const init = async () => {
-    await appCtx.redirect();
+    try {
+      await appCtx.redirect();
+      window.location.href = appCtx.lobbyPage;
+    } catch (error) {}
   };
 
   React.useEffect(() => {

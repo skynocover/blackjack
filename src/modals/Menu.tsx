@@ -54,10 +54,7 @@ export const Menu = ({ minBet, doubleAt11, H17, blackjackPay }: MenuProps) => {
         </antd.Descriptions>
 
         <antd.Button type="link" danger onClick={leaveRoom}>
-          Leave Room
-        </antd.Button>
-        <antd.Button type="link" danger onClick={appCtx.logout}>
-          Logout
+          Check Out
         </antd.Button>
       </div>
     </>
